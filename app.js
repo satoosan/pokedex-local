@@ -42,6 +42,7 @@ let allPokemon=[], currentList=[], state=loadState();
 let route={type:'dashboard',gen:null,game:null};
 let statusFilter='all', search='';
 const gameDexCache={};
+const dexDataCache={};
 
 function loadState(){
   try{const s=JSON.parse(localStorage.getItem(STORAGE))||{};s.pokemon||={};s.forms||={};s.games||={};s.celebratedGames||={};return s}
@@ -62,6 +63,7 @@ async function boot(){
     if(!cached)sessionStorage.setItem('pokedex-species',JSON.stringify(data));
     allPokemon=data.results.map(x=>({id:idFromUrl(x.url),name:x.name,url:x.url})).filter(x=>x.id>0).sort((a,b)=>a.id-b.id);
     buildGenerationNav(); renderDashboard();
+    preloadGameDexes().then(()=>{if(route.type==='dashboard')renderDashboard()}).catch(console.warn);
   }catch(e){document.getElementById('loading').textContent='Não consegui acessar a PokéAPI. Confira a internet e recarregue.';console.error(e)}
 }
 
@@ -80,9 +82,8 @@ function setupUI(){
 
 function buildGenerationNav(){
   const el=document.getElementById('generationNav');
-  el.innerHTML=gens.map(g=>`<section class="gen-nav-group" data-gen-group="${g.id}"><button class="gen-nav-head" data-gen="${g.id}"><span><strong>${g.name}</strong><small>${g.region}</small></span><span class="chev">⌄</span></button><div class="gen-games"><button class="game-nav gen-all" data-gen="${g.id}">Todos os Pokémon da geração</button>${games.filter(x=>x.gen===g.id).map(x=>`<button class="game-nav" data-game="${x.id}" data-gen="${g.id}">${x.short}</button>`).join('')}</div></section>`).join('');
-  el.querySelectorAll('.gen-nav-head').forEach(b=>b.onclick=()=>{const grp=b.closest('.gen-nav-group');const opening=!grp.classList.contains('open');el.querySelectorAll('.gen-nav-group').forEach(x=>x.classList.remove('open'));grp.classList.toggle('open',opening);if(opening)navigate({type:'generation',gen:Number(b.dataset.gen)})});
-  el.querySelectorAll('.gen-all').forEach(b=>b.onclick=e=>{e.stopPropagation();navigate({type:'generation',gen:Number(b.dataset.gen)})});
+  el.innerHTML=gens.map(g=>`<section class="gen-nav-group" data-gen-group="${g.id}"><button class="gen-nav-head" data-gen="${g.id}"><span><strong>${g.name}</strong><small>${g.region}</small></span><span class="chev">⌄</span></button><div class="gen-games">${games.filter(x=>x.gen===g.id).map(x=>`<button class="game-nav" data-game="${x.id}" data-gen="${g.id}">${x.name}</button>`).join('')}</div></section>`).join('');
+  el.querySelectorAll('.gen-nav-head').forEach(b=>b.onclick=()=>{const grp=b.closest('.gen-nav-group');const opening=!grp.classList.contains('open');el.querySelectorAll('.gen-nav-group').forEach(x=>x.classList.remove('open'));grp.classList.toggle('open',opening)});
   el.querySelectorAll('.game-nav[data-game]').forEach(b=>b.onclick=e=>{e.stopPropagation();navigate({type:'game',gen:Number(b.dataset.gen),game:b.dataset.game})});
 }
 
@@ -95,10 +96,7 @@ async function navigate(next){
   updateBulkCatchButton();
   if(next.type==='dashboard'){setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
   if(next.type==='national'){setHeading('NATIONAL DEX','National Dex','Todos os Pokémon em uma única lista.');currentList=allPokemon;renderContext();renderGrid();return}
-  if(next.type==='generation'){
-    const g=gens.find(x=>x.id===next.gen);setHeading(`${g.name.toUpperCase()} • ${g.region.toUpperCase()}`,g.name,`Pokémon introduzidos na ${g.name} e jogos dessa geração.`);
-    currentList=allPokemon.filter(p=>p.id>=g.range[0]&&p.id<=g.range[1]);markNavActive();renderContext();renderGrid();return;
-  }
+  if(next.type==='generation'){route={type:'dashboard',gen:null,game:null};setHeading('PROGRESSO GERAL','Dashboard','');document.getElementById('dashboardView').classList.add('active-view');document.getElementById('dexView').classList.remove('active-view');renderDashboard();return}
   if(next.type==='game'){
     const game=games.find(x=>x.id===next.game);setHeading(`GEN ${roman(game.gen)} • JOGO`,game.name,'Marque os Pokémon obtidos especificamente neste jogo.');markNavActive();renderContext();await loadGame(game);renderGrid();
   }
@@ -108,29 +106,42 @@ function roman(n){return ['','I','II','III','IV','V','VI','VII','VIII','IX'][n]|
 function markNavActive(){
   if(route.gen){const grp=document.querySelector(`[data-gen-group="${route.gen}"]`);grp?.classList.add('open');grp?.querySelector('.gen-nav-head')?.classList.add('active')}
   if(route.game)document.querySelector(`.game-nav[data-game="${route.game}"]`)?.classList.add('active');
-  else if(route.gen)document.querySelector(`.gen-all[data-gen="${route.gen}"]`)?.classList.add('active');
 }
 
 function renderContext(){
   const el=document.getElementById('contextSwitcher');
-  if(route.type==='generation'||route.type==='game'){
+  if(route.type==='game'){
     const g=gens.find(x=>x.id===route.gen); const list=games.filter(x=>x.gen===route.gen);
-    el.innerHTML=`<button class="context-chip ${route.type==='generation'?'active':''}" data-context-gen="${g.id}">Todos da ${g.name}</button>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}`;
-    el.querySelector('[data-context-gen]').onclick=()=>navigate({type:'generation',gen:g.id});
+    el.innerHTML=`<span class="context-label">${g.name} • ${g.region}</span>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}`;
     el.querySelectorAll('[data-context-game]').forEach(b=>b.onclick=()=>navigate({type:'game',gen:g.id,game:b.dataset.contextGame}));
   }else el.innerHTML='';
 }
 
+async function getDexEntries(dex){
+  if(dexDataCache[dex])return dexDataCache[dex];
+  try{
+    const d=await fetch(`${API}/pokedex/${dex}`).then(r=>{if(!r.ok)throw Error(`Dex ${dex}`);return r.json()});
+    const list=d.pokemon_entries.map(e=>({id:idFromUrl(e.pokemon_species.url),name:e.pokemon_species.name,url:e.pokemon_species.url,regionalNo:e.entry_number}));
+    dexDataCache[dex]=list;return list;
+  }catch{return []}
+}
+async function getGameList(game){
+  if(gameDexCache[game.id])return gameDexCache[game.id];
+  let entries=[];
+  for(const dex of game.dex)entries.push(...await getDexEntries(dex));
+  let list;
+  if(entries.length){
+    const map=new Map();entries.forEach(p=>{if(!map.has(p.id))map.set(p.id,p)});
+    list=[...map.values()].sort((a,b)=>(a.regionalNo||9999)-(b.regionalNo||9999));
+  }else list=allPokemon.filter(p=>p.id>=game.fallback[0]&&p.id<=game.fallback[1]);
+  gameDexCache[game.id]=list;return list;
+}
+async function preloadGameDexes(){
+  await Promise.allSettled(games.map(g=>getGameList(g)));
+}
 async function loadGame(game){
   document.getElementById('loading').style.display='block';document.getElementById('loading').textContent=`Carregando ${game.name}…`;
-  if(gameDexCache[game.id]){currentList=gameDexCache[game.id];return}
-  let entries=[];
-  for(const dex of game.dex){
-    try{const d=await fetch(`${API}/pokedex/${dex}`).then(r=>{if(!r.ok)throw Error();return r.json()});entries.push(...d.pokemon_entries.map(e=>({id:idFromUrl(e.pokemon_species.url),name:e.pokemon_species.name,url:e.pokemon_species.url,regionalNo:e.entry_number})))}catch{}
-  }
-  if(entries.length){const map=new Map();entries.forEach(p=>{if(!map.has(p.id))map.set(p.id,p)});currentList=[...map.values()].sort((a,b)=>(a.regionalNo||9999)-(b.regionalNo||9999));}
-  else currentList=allPokemon.filter(p=>p.id>=game.fallback[0]&&p.id<=game.fallback[1]);
-  gameDexCache[game.id]=currentList;
+  currentList=await getGameList(game);
 }
 
 function filteredBase(){
@@ -185,20 +196,20 @@ function toggleQuickCatch(id){
 }
 function updateSummary(){
   const base=currentList;const done=route.type==='game'?base.filter(p=>gameState(route.game,p.id).caught).length:base.filter(p=>pstate(p.id).caught).length;const total=base.length,pct=total?done/total*100:0;
-  const label=route.type==='national'?'National Dex':route.type==='generation'?`${gens.find(g=>g.id===route.gen)?.name} — introduzidos`:games.find(g=>g.id===route.game)?.name||'Dex';
+  const label=route.type==='national'?'National Dex':games.find(g=>g.id===route.game)?.name||'Dex';
   document.getElementById('dexLabel').textContent=label;document.getElementById('dexSummary').textContent=`${done} / ${total}`;document.getElementById('dexRemaining').textContent=done===total&&total?'Completa! 🏆':`${Math.max(0,total-done)} faltando`;document.getElementById('dexBar').style.width=`${pct}%`;
 }
 
-function renderDashboard(){renderStats();renderGenerationCards();renderGoals()}
+function renderDashboard(){renderStats();renderGameCards();renderGoals()}
 function renderStats(){
   const vals={seen:0,caught:0,shiny:0,home:0};allPokemon.forEach(p=>{const s=pstate(p.id);Object.keys(vals).forEach(k=>vals[k]+=s[k]?1:0)});Object.keys(vals).forEach(k=>{const e=document.getElementById(`${k}Stat`);if(e)e.textContent=vals[k]});const total=allPokemon.length,pct=total?Math.round(vals.caught/total*100):0;document.getElementById('mainRing').style.setProperty('--p',`${pct*3.6}deg`);document.getElementById('mainPercent').textContent=`${pct}%`;document.getElementById('mainProgressText').textContent=`${vals.caught} / ${total} na Living Dex`;
 }
-function renderGenerationCards(){
+function renderGameCards(){
   const el=document.getElementById('generationCards');
-  el.innerHTML=gens.map(g=>{const list=allPokemon.filter(p=>p.id>=g.range[0]&&p.id<=g.range[1]),done=list.filter(p=>pstate(p.id).caught).length,pct=list.length?Math.round(done/list.length*100):0;return `<button class="generation-card" data-open-gen="${g.id}"><span class="gen-badge">${g.name}</span><div><strong>${g.region}</strong><small>${games.filter(x=>x.gen===g.id).map(x=>x.short).join(' • ')}</small></div><div class="gen-progress"><b>${pct}%</b><span>${done}/${list.length}</span></div></button>`}).join('');
-  el.querySelectorAll('[data-open-gen]').forEach(b=>b.onclick=()=>navigate({type:'generation',gen:Number(b.dataset.openGen)}));
+  el.innerHTML=gens.map(g=>`<section class="dashboard-gen"><div class="dashboard-gen-head"><span class="gen-badge">${g.name}</span><div><strong>${g.region}</strong><small>${games.filter(x=>x.gen===g.id).length} ${games.filter(x=>x.gen===g.id).length===1?'jogo':'jogos'}</small></div></div><div class="dashboard-game-grid">${games.filter(x=>x.gen===g.id).map(game=>{const pr=gameProgress(game.id),pct=pr.total?Math.round(pr.done/pr.total*100):0;return `<button class="dashboard-game-card ${pr.complete?'complete':''}" data-open-game="${game.id}" data-gen="${g.id}"><div><strong>${pr.complete?'🏆 ':''}${game.name}</strong><small>${pr.complete?'Pokédex completa!':'Continuar Pokédex'}</small></div><div class="gen-progress"><b>${pct}%</b><span>${pr.done}/${pr.total}</span></div></button>`}).join('')}</div></section>`).join('');
+  el.querySelectorAll('[data-open-game]').forEach(b=>b.onclick=()=>navigate({type:'game',gen:Number(b.dataset.gen),game:b.dataset.openGame}));
 }
-function renderGoals(){const total=allPokemon.length,c=allPokemon.filter(p=>pstate(p.id).caught).length,sh=allPokemon.filter(p=>pstate(p.id).shiny).length,ho=allPokemon.filter(p=>pstate(p.id).home).length,forms=Object.values(state.forms).filter(Boolean).length,completed=games.filter(g=>state.celebratedGames[g.id]).length;document.getElementById('goalCards').innerHTML=`<div class="goal-card"><strong>● Living Dex</strong><small>${c}/${total} espécies</small></div><div class="goal-card"><strong>✦ Shiny Dex</strong><small>${sh}/${total} shinies</small></div><div class="goal-card"><strong>◇ Form Dex</strong><small>${forms} formas extras</small></div><div class="goal-card"><strong>⌂ Pokémon HOME</strong><small>${ho}/${total} enviados</small></div><div class="goal-card"><strong>🏆 Jogos completos</strong><small>${completed}/${games.length} Pokédex concluídas</small></div>`}
+function renderGoals(){const total=allPokemon.length,c=allPokemon.filter(p=>pstate(p.id).caught).length,sh=allPokemon.filter(p=>pstate(p.id).shiny).length,ho=allPokemon.filter(p=>pstate(p.id).home).length,forms=Object.values(state.forms).filter(Boolean).length,completed=games.filter(g=>gameProgress(g.id).complete).length;document.getElementById('goalCards').innerHTML=`<div class="goal-card"><strong>● Living Dex</strong><small>${c}/${total} espécies</small></div><div class="goal-card"><strong>✦ Shiny Dex</strong><small>${sh}/${total} shinies</small></div><div class="goal-card"><strong>◇ Form Dex</strong><small>${forms} formas extras</small></div><div class="goal-card"><strong>⌂ Pokémon HOME</strong><small>${ho}/${total} enviados</small></div><div class="goal-card"><strong>🏆 Jogos completos</strong><small>${completed}/${games.length} Pokédex concluídas</small></div>`}
 
 async function openPokemon(id){
   const dlg=document.getElementById('pokemonDialog'),content=document.getElementById('dialogContent'),p=allPokemon.find(x=>x.id===id),s=pstate(id);content.innerHTML='<p class="muted">Carregando detalhes…</p>';dlg.showModal();
@@ -224,7 +235,7 @@ function renderPokemonTab(ctx,tab){
   panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;persist();renderPokemonTab(ctx,'games');if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
 }
 
-function gameProgress(gameId){const g=games.find(x=>x.id===gameId),list=gameDexCache[gameId]||allPokemon.filter(p=>p.id>=g.fallback[0]&&p.id<=g.fallback[1]);const done=list.filter(p=>gameState(gameId,p.id).caught).length;return{done,total:list.length,complete:list.length>0&&done===list.length}}
+function gameProgress(gameId){const g=games.find(x=>x.id===gameId),list=gameDexCache[gameId]||allPokemon.filter(p=>p.id>=g.fallback[0]&&p.id<=g.fallback[1]);const done=list.filter(p=>!!state.games?.[gameId]?.[p.id]?.caught).length;const complete=list.length>0&&done===list.length;return{done,total:list.length,complete}}
 function checkGameCompletion(gameId){const pr=gameProgress(gameId);if(!pr.complete||state.celebratedGames[gameId])return;state.celebratedGames[gameId]=new Date().toISOString();persist();showCelebration(gameId,pr.total)}
 function showCelebration(gameId,total){const game=games.find(g=>g.id===gameId),dlg=document.getElementById('celebrationDialog');document.getElementById('celebrationContent').innerHTML=`<div class="celebration-wrap"><div class="trophy">🏆</div><p class="eyebrow">100% COMPLETA</p><h2>PARABÉNS! 🎉</h2><p>Você completou a Pokédex de <strong>${game.name}</strong> com <strong>${total}/${total}</strong> Pokémon!</p><div class="confetti-line">✦ ● ★ ✦ ● ★ ✦</div><div class="celebration-actions"><button class="primary-action" id="shareGameX">Compartilhar no X</button><button class="secondary-action" id="copyGamePost">Copiar texto</button></div></div>`;dlg.showModal();document.getElementById('shareGameX').onclick=()=>openXPost(gameCompletionText(game,total));document.getElementById('copyGamePost').onclick=()=>copyShareText(gameCompletionText(game,total))}
 function gameCompletionText(game,total){return `🏆 Pokédex completa! Consegui registrar todos os ${total} Pokémon de ${game.name}!\n\nMais uma Dex 100% concluída ✨ #Pokemon #Pokedex`}

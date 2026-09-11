@@ -68,3 +68,10 @@ O service worker mantém o app shell em cache e guarda respostas/sprites já vis
 
 ## Backup
 O export gera um JSON versionado com Pokémon, formas, progresso por jogo e jogos concluídos. O import valida a estrutura, mostra um resumo e pede confirmação antes de substituir o save atual. Backups antigos continuam aceitos.
+
+
+## V5.1 — navegação por jogo
+- O menu por geração agora lista apenas os jogos; removido “Todos os Pokémon da geração”.
+- O Dashboard mostra progresso separado por jogo dentro de cada geração, incluindo 100% e troféu.
+- O progresso usa a Pokédex regional do jogo quando disponível na PokéAPI.
+- Corrigido o botão de instalação para não cortar o texto.
