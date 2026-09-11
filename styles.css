@@ -55,3 +55,51 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
   border-color:rgba(99,155,255,.38);
   background:rgba(99,155,255,.09);
 }
+
+
+/* V7.2 — seleção em lote para Pokémon HOME */
+.home-selection-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:10px 0 14px;padding:12px 14px;border:1px solid var(--line);
+  border-radius:14px;background:var(--panel2)
+}
+.home-selection-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.home-selection-left>span{font-size:10px;color:var(--muted);font-weight:700}
+.select-all-toggle{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;cursor:pointer}
+.select-all-toggle input{width:17px;height:17px}
+.home-selection-actions{display:flex;gap:7px;flex-wrap:wrap}
+.home-selection-actions button{
+  border:1px solid var(--line);border-radius:10px;background:var(--panel);
+  color:var(--text);padding:8px 10px;font:inherit;font-size:10px;font-weight:800;cursor:pointer
+}
+.home-selection-actions .primary{border-color:rgba(80,160,255,.4);background:rgba(80,160,255,.10)}
+.home-selection-actions .danger{border-color:rgba(255,82,99,.35);background:rgba(255,82,99,.08)}
+.home-selection-actions button:disabled{opacity:.4;cursor:default}
+.home-select-box{
+  position:absolute;top:10px;right:10px;z-index:5;width:24px;height:24px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer
+}
+.home-select-box input{position:absolute;opacity:0;pointer-events:none}
+.home-select-box span{
+  width:20px;height:20px;border-radius:6px;border:2px solid var(--muted);
+  background:rgba(10,16,28,.75);display:block;position:relative
+}
+.home-select-box input:checked+span{
+  border-color:#64a8ff;background:rgba(100,168,255,.22)
+}
+.home-select-box input:checked+span:after{
+  content:'✓';position:absolute;inset:0;display:grid;place-items:center;
+  font-size:13px;font-weight:900;color:#fff
+}
+.pokemon-card{position:relative}
+.pokemon-card.selected-for-home{
+  outline:2px solid rgba(100,168,255,.65);
+  box-shadow:0 0 0 4px rgba(100,168,255,.08)
+}
+@media(max-width:780px){
+  .home-selection-bar{align-items:stretch;flex-direction:column}
+  .home-selection-actions{display:grid;grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .home-selection-actions{grid-template-columns:1fr}
+}

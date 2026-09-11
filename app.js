@@ -40,6 +40,7 @@ const games=[
 
 let allPokemon=[], currentList=[], state=loadState();
 let route={type:'dashboard',gen:null,game:null};
+let homeSelection=new Set();
 let statusFilter='all', search='', viewMode='cards';
 const gameDexCache={};
 const dexDataCache={};
@@ -92,6 +93,11 @@ function setupUI(){
   document.getElementById('closeCelebration').onclick=()=>document.getElementById('celebrationDialog').close();
   document.getElementById('markAllGameBtn').onclick=markAllGameCaught; document.getElementById('unmarkAllGameBtn').onclick=unmarkAllGameCaught;
   document.getElementById('markAllHomeBtn').onclick=markAllHome; document.getElementById('unmarkAllHomeBtn').onclick=unmarkAllHome;
+  document.getElementById('selectAllVisibleHome').onchange=e=>toggleSelectAllVisibleHome(e.target.checked);
+  document.getElementById('selectMissingHomeBtn').onclick=selectMissingVisibleHome;
+  document.getElementById('clearHomeSelectionBtn').onclick=clearHomeSelection;
+  document.getElementById('sendSelectedHomeBtn').onclick=()=>applySelectedHome(true);
+  document.getElementById('removeSelectedHomeBtn').onclick=()=>applySelectedHome(false);
   setupInstallPrompt();
 }
 
@@ -103,12 +109,12 @@ function buildGenerationNav(){
 }
 
 async function navigate(next){
-  route=next; search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':'Peguei';
+  if(route?.type==='home'&&next.type!=='home')homeSelection.clear();route=next; search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':'Peguei';
   document.getElementById('dashboardView').classList.toggle('active-view',next.type==='dashboard');
   document.getElementById('dexView').classList.toggle('active-view',next.type!=='dashboard');
   document.querySelectorAll('.main-nav .nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===next.type));
   document.querySelectorAll('.game-nav,.gen-nav-head').forEach(b=>b.classList.remove('active'));
-  updateBulkCatchButton();
+  updateBulkCatchButton();updateHomeSelectionBar();
   if(next.type==='dashboard'){setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
   if(next.type==='national'){setHeading('NATIONAL DEX','National Dex','Todos os Pokémon em uma única lista.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='home'){setHeading('POKÉMON HOME','Coleção no HOME','Marque exatamente quais Pokémon você já enviou ao Pokémon HOME.');currentList=allPokemon;renderContext();renderGrid();return}
@@ -174,7 +180,9 @@ function renderGrid(){
   grid.querySelectorAll('.pokemon-card').forEach(card=>{
     const id=Number(card.dataset.id);
     card.querySelector('.pokemon-main')?.addEventListener('click',()=>openPokemon(id));
-    card.querySelector('[data-quick-catch]')?.addEventListener('click',e=>{e.stopPropagation();toggleQuickCatch(id)});
+    card.querySelector('[data-quick-catch]')?.addEventListener('click',e=>{e.stopPropagation();
+    card.querySelector('[data-home-select]')?.addEventListener('change',e=>{e.stopPropagation();toggleHomeSelection(Number(card.dataset.id),e.target.checked)});
+    card.querySelector('.home-select-box')?.addEventListener('click',e=>e.stopPropagation());toggleQuickCatch(id)});
     card.querySelector('[data-share-pokemon]')?.addEventListener('click',e=>{e.stopPropagation();sharePokemon(id)});
   });
   updateSummary();
@@ -186,7 +194,7 @@ function cardHTML(p){
   const sourceNote=route.type!=='game'&&caught&&!s.manualCaught&&anyGameCaught(p.id)?'Via jogo':'';
   const actionLabel=route.type==='home'?(s.home?'✓ Está no HOME':'○ Mandar para o HOME'):(caught?'✓ Peguei!':'○ Marcar como pego');
   const shareButton=route.type!=='home'&&caught?'<button class="share-mini" data-share-pokemon title="Compartilhar no X">↗ X</button>':'';
-  return `<article class="pokemon-card ${caught?'caught':''} ${route.type==='home'&&s.home?'home-card':''}" data-id="${p.id}"><button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4>${sourceNote?`<small class="source-note">${sourceNote}</small>`:''}<div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''} ${route.type==='home'?'home-check':''}" data-quick-catch>${actionLabel}</button>${shareButton}</div></article>`;
+  return `<article class="pokemon-card ${caught?'caught':''} ${route.type==='home'&&s.home?'home-card':''} ${route.type==='home'&&homeSelection.has(p.id)?'selected-for-home':''}" data-id="${p.id}">${route.type==='home'?`<label class="home-select-box" title="Selecionar para ação em lote"><input type="checkbox" data-home-select ${homeSelection.has(p.id)?'checked':''}><span></span></label>`:''}<button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4>${sourceNote?`<small class="source-note">${sourceNote}</small>`:''}<div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''} ${route.type==='home'?'home-check':''}" data-quick-catch>${actionLabel}</button>${shareButton}</div></article>`;
 }
 
 function updateBulkCatchButton(){
@@ -218,6 +226,74 @@ function updateBulkCatchButton(){
   }
 }
 
+
+
+function getVisibleHomePokemon(){
+  const q=search.trim().toLowerCase();
+  return currentList.filter(p=>{
+    const s=pstate(p.id);
+    if(q && !(p.name.includes(q)||String(p.id).includes(q))) return false;
+    if(statusFilter==='missing' && s.home) return false;
+    if(statusFilter==='caught' && !s.home) return false;
+    if(statusFilter==='shiny' && !s.shiny) return false;
+    return true;
+  });
+}
+function updateHomeSelectionBar(){
+  const bar=document.getElementById('homeSelectionBar');
+  const count=document.getElementById('homeSelectionCount');
+  const master=document.getElementById('selectAllVisibleHome');
+  const send=document.getElementById('sendSelectedHomeBtn');
+  const remove=document.getElementById('removeSelectedHomeBtn');
+  const isHome=route.type==='home';
+  bar?.classList.toggle('hidden',!isHome);
+  if(!isHome)return;
+
+  const visible=getVisibleHomePokemon();
+  const selectedVisible=visible.filter(p=>homeSelection.has(p.id));
+  if(count) count.textContent=`${homeSelection.size} selecionado${homeSelection.size===1?'':'s'}`;
+  if(master){
+    master.checked=visible.length>0 && selectedVisible.length===visible.length;
+    master.indeterminate=selectedVisible.length>0 && selectedVisible.length<visible.length;
+  }
+  if(send) send.disabled=homeSelection.size===0;
+  if(remove) remove.disabled=homeSelection.size===0;
+}
+function toggleHomeSelection(id,checked){
+  if(checked) homeSelection.add(id); else homeSelection.delete(id);
+  updateHomeSelectionBar();
+}
+function toggleSelectAllVisibleHome(checked){
+  const visible=getVisibleHomePokemon();
+  visible.forEach(p=>checked?homeSelection.add(p.id):homeSelection.delete(p.id));
+  renderGrid();
+}
+function selectMissingVisibleHome(){
+  const visible=getVisibleHomePokemon();
+  visible.filter(p=>!pstate(p.id).home).forEach(p=>homeSelection.add(p.id));
+  renderGrid();
+}
+function clearHomeSelection(){
+  homeSelection.clear();
+  renderGrid();
+}
+function applySelectedHome(value){
+  const ids=[...homeSelection];
+  if(!ids.length)return;
+  const verb=value?'mandar':'tirar';
+  const prep=value?'para o':'do';
+  if(!confirm(`Tem certeza que deseja ${verb} ${ids.length} Pokémon selecionado${ids.length===1?'':'s'} ${prep} HOME?`))return;
+  ids.forEach(id=>{pstate(id).home=value});
+  recordEvent(value?'home-selection-add':'home-selection-remove',{count:ids.length});
+  persist();
+  homeSelection.clear();
+  renderGrid();
+}
+function dedupePokemonList(list){
+  const m=new Map();
+  (list||[]).forEach(p=>{if(!m.has(p.id))m.set(p.id,p)});
+  return [...m.values()];
+}
 
 function markAllHome(){
   if(route.type!=='home'||!currentList.length)return;

@@ -107,3 +107,7 @@ A ficha do Pokémon ganhou a aba **📍 Onde obter**, com encontros por versão,
 
 ## V7.1 — Pokémon HOME
 Foi adicionada uma tela própria **⌂ Pokémon HOME**. Nela é possível marcar Pokémon individualmente com um check, usar **Mandar todos para o HOME** ou **Tirar todos do HOME**. Esses comandos alteram somente o status HOME e não mexem na National/Living Dex nem no progresso dos jogos.
+
+
+## V7.2 — Seleção em lote do Pokémon HOME
+Na tela **Pokémon HOME**, cada card agora possui um checkbox no canto superior. É possível selecionar apenas alguns Pokémon e usar **Mandar selecionados para o HOME** ou **Tirar selecionados do HOME**. Também há atalhos para **Selecionar visíveis**, **Selecionar fora do HOME** e **Limpar seleção**. Listas por jogo são deduplicadas por espécie para evitar repetição do mesmo Pokémon.
