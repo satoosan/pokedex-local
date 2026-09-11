@@ -99,3 +99,7 @@ Ao marcar um Pokémon como pego em qualquer jogo, ele também é marcado automat
 
 ## V6.2 — Encontrados sincronizados
 O contador **Encontrados** agora acompanha a National/Living Dex: pegar um Pokémon em qualquer jogo marca também como encontrado; ao desmarcar sua última origem, ele deixa de contar como encontrado. Saves antigos são recalculados automaticamente ao abrir.
+
+
+## V7 — Onde obter
+A ficha do Pokémon ganhou a aba **📍 Onde obter**, com encontros por versão, localização, método, nível, chance e condições quando a PokéAPI informa. Eventos históricos, presentes especiais e transferências ainda não são uma base completa; nesses casos o app sinaliza a limitação em vez de inventar uma origem.
