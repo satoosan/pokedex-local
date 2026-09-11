@@ -37,3 +37,21 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 
 /* V7 — Onde obter */
 .obtain-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:14px}.obtain-head h3{margin:3px 0 5px}.obtain-count{white-space:nowrap;border:1px solid var(--line);background:var(--panel2);padding:7px 10px;border-radius:999px;color:var(--muted);font-size:10px;font-weight:800}.obtain-version{border:1px solid var(--line);background:var(--panel2);border-radius:14px;margin:9px 0;overflow:hidden}.obtain-version summary{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:13px 15px;list-style:none}.obtain-version summary::-webkit-details-marker{display:none}.obtain-version summary span{font-size:10px;color:var(--muted)}.obtain-rows{border-top:1px solid var(--line);display:grid}.obtain-row{padding:11px 15px;border-bottom:1px solid var(--line)}.obtain-row:last-child{border-bottom:0}.obtain-row strong,.obtain-row span,.obtain-row small{display:block}.obtain-row strong{font-size:12px}.obtain-row span{font-size:11px;color:var(--muted);margin-top:3px}.obtain-row small{font-size:9px;color:var(--muted);margin-top:3px}.obtain-warning{margin-top:14px;border:1px solid rgba(242,188,48,.28);background:rgba(242,188,48,.07);padding:12px 14px;border-radius:13px;color:var(--muted);font-size:11px;line-height:1.55}.obtain-empty{text-align:center;padding:28px 18px}.obtain-empty .obtain-icon{font-size:42px}.obtain-empty h3{margin:8px 0}.obtain-empty p{max-width:650px;margin:0 auto;color:var(--muted);line-height:1.6}@media(max-width:650px){.obtain-head{flex-direction:column}.obtain-count{align-self:flex-start}}
+
+
+/* V7.1 — coleção Pokémon HOME */
+.home-check{
+  border-color:rgba(99,155,255,.35)!important;
+  background:rgba(99,155,255,.08)!important;
+}
+.home-check.is-checked{
+  background:rgba(78,190,133,.16)!important;
+  border-color:rgba(78,190,133,.48)!important;
+}
+.pokemon-card.home-card{
+  box-shadow:inset 0 0 0 1px rgba(99,155,255,.18);
+}
+#homeBulkActions .home-bulk{
+  border-color:rgba(99,155,255,.38);
+  background:rgba(99,155,255,.09);
+}

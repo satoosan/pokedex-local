@@ -21,6 +21,7 @@
     <nav class="main-nav">
       <button class="nav-btn active" data-route="dashboard">⌂ Dashboard</button>
       <button class="nav-btn" data-route="national">▦ National Dex</button>
+      <button class="nav-btn" data-route="home">⌂ Pokémon HOME</button>
     </nav>
     <div class="nav-section-title">JOGOS POR GERAÇÃO</div>
     <div id="generationNav" class="generation-nav"></div>
@@ -57,7 +58,7 @@
     <section id="dexView" class="view">
       <div id="contextSwitcher" class="context-switcher"></div>
       <div class="toolbar">
-        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><div class="segmented view-toggle" id="viewMode"><button class="active" data-viewmode="cards">▦ Cards</button><button data-viewmode="boxes">▦ Boxes</button></div><div id="gameBulkActions" class="game-bulk-actions hidden"><button id="markAllGameBtn" class="bulk-catch" type="button">✓ Marcar todos como pegos</button><button id="unmarkAllGameBtn" class="bulk-uncatch" type="button">↺ Desmarcar todos</button></div>
+        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><div class="segmented view-toggle" id="viewMode"><button class="active" data-viewmode="cards">▦ Cards</button><button data-viewmode="boxes">▦ Boxes</button></div><div id="gameBulkActions" class="game-bulk-actions hidden"><button id="markAllGameBtn" class="bulk-catch" type="button">✓ Marcar todos como pegos</button><button id="unmarkAllGameBtn" class="bulk-uncatch" type="button">↺ Desmarcar todos</button></div><div id="homeBulkActions" class="game-bulk-actions hidden"><button id="markAllHomeBtn" class="bulk-catch home-bulk" type="button">⌂ Mandar todos para o HOME</button><button id="unmarkAllHomeBtn" class="bulk-uncatch" type="button">↺ Tirar todos do HOME</button></div>
       </div>
       <div class="summary-strip"><div><small id="dexLabel">National Dex</small><strong id="dexSummary">0 / 0</strong></div><div class="bar"><span id="dexBar"></span></div><div id="dexRemaining">0 faltando</div></div>
       <div id="pokemonGrid" class="pokemon-grid"></div>

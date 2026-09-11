@@ -103,3 +103,7 @@ O contador **Encontrados** agora acompanha a National/Living Dex: pegar um Poké
 
 ## V7 — Onde obter
 A ficha do Pokémon ganhou a aba **📍 Onde obter**, com encontros por versão, localização, método, nível, chance e condições quando a PokéAPI informa. Eventos históricos, presentes especiais e transferências ainda não são uma base completa; nesses casos o app sinaliza a limitação em vez de inventar uma origem.
+
+
+## V7.1 — Pokémon HOME
+Foi adicionada uma tela própria **⌂ Pokémon HOME**. Nela é possível marcar Pokémon individualmente com um check, usar **Mandar todos para o HOME** ou **Tirar todos do HOME**. Esses comandos alteram somente o status HOME e não mexem na National/Living Dex nem no progresso dos jogos.
