@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Tracker local de Pokédex: jogos, Living Dex, formas, shinies e Pokémon HOME." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="My Pokédex" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>My Pokédex Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-ball">◉</span><div><strong>My Pokédex</strong><small>Tracker local</small></div></div>
+    <nav class="main-nav">
+      <button class="nav-btn active" data-route="dashboard">⌂ Dashboard</button>
+      <button class="nav-btn" data-route="national">▦ National Dex</button>
+    </nav>
+    <div class="nav-section-title">JORNADA POR GERAÇÃO</div>
+    <div id="generationNav" class="generation-nav"></div>
+    <div class="sidebar-footer">
+      <button id="exportBtn" class="secondary">Exportar backup</button>
+      <label class="secondary file-label">Importar backup<input type="file" id="importInput" accept="application/json" /></label>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <div><p class="eyebrow" id="eyebrow">PROGRESSO GERAL</p><h1 id="pageTitle">Dashboard</h1><p id="pageSubtitle" class="page-subtitle"></p></div>
+      <div class="top-actions"><button id="installBtn" class="install-btn hidden" type="button">⬇ Instalar app</button><input id="searchInput" type="search" placeholder="Buscar Pokémon por nome ou #..." /><button id="themeBtn" title="Alternar tema">☾</button></div>
+    </header>
+
+    <section id="dashboardView" class="view active-view">
+      <div class="hero-card">
+        <div><span class="pill">Sua coleção</span><h2>Sua jornada inteira, organizada por geração.</h2><p>Abra uma geração, escolha o jogo e depois cuide de Living Dex, formas, shinies, regional e HOME dentro de cada Pokémon.</p></div>
+        <div class="hero-progress"><div class="ring" id="mainRing"><span id="mainPercent">0%</span></div><small id="mainProgressText">0 / 0 capturados</small></div>
+      </div>
+      <div class="stats-grid">
+        <article class="stat-card"><span>👁</span><div><small>Encontrados</small><strong id="seenStat">0</strong></div></article>
+        <article class="stat-card"><span>●</span><div><small>Living Dex</small><strong id="caughtStat">0</strong></div></article>
+        <article class="stat-card"><span>✦</span><div><small>Shinies</small><strong id="shinyStat">0</strong></div></article>
+        <article class="stat-card"><span>⌂</span><div><small>No HOME</small><strong id="homeStat">0</strong></div></article>
+      </div>
+      <div class="dashboard-grid">
+        <section class="panel"><div class="panel-head"><p class="eyebrow">GERAÇÕES</p><h3>Escolha onde continuar</h3></div><div id="generationCards" class="generation-cards"></div></section>
+        <section class="panel"><div class="panel-head"><p class="eyebrow">CONQUISTAS</p><h3>Sua coleção</h3></div><div id="goalCards" class="goal-grid"></div></section>
+      </div>
+    </section>
+
+    <section id="dexView" class="view">
+      <div id="contextSwitcher" class="context-switcher"></div>
+      <div class="toolbar">
+        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><button id="markAllGameBtn" class="bulk-catch hidden" type="button">✓ Marcar todos como pegos</button>
+      </div>
+      <div class="summary-strip"><div><small id="dexLabel">National Dex</small><strong id="dexSummary">0 / 0</strong></div><div class="bar"><span id="dexBar"></span></div><div id="dexRemaining">0 faltando</div></div>
+      <div id="pokemonGrid" class="pokemon-grid"></div>
+      <div id="loading" class="loading">Carregando Pokédex…</div>
+    </section>
+  </main>
+</div>
+
+<dialog id="celebrationDialog" class="celebration-dialog"><button class="close" id="closeCelebration">×</button><div id="celebrationContent"></div></dialog>
+<dialog id="pokemonDialog" class="pokemon-dialog"><button class="close" id="closeDialog">×</button><div id="dialogContent"></div></dialog>
+<script src="app.js"></script>
+</body>
+</html>

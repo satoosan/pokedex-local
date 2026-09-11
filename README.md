@@ -1,0 +1,70 @@
+# My Pokédex Tracker
+
+Uma Pokédex pessoal local para acompanhar National Dex, Regional Dex, Living Dex, Form Dex, Shiny Dex e Pokémon HOME.
+
+## Como abrir
+
+A forma mais simples é usar um servidor local, porque alguns navegadores bloqueiam `fetch` ao abrir HTML direto por `file://`.
+
+### Python
+
+```bash
+cd pokedex-local
+python -m http.server 8080
+```
+
+Abra `http://localhost:8080`.
+
+### Node
+
+```bash
+npx serve .
+```
+
+## O que já tem
+
+- National Dex puxada da PokéAPI
+- Filtro por gerações I–IX
+- Dex regionais (Kanto, Johto, Hoenn, Sinnoh, Unova, Kalos, Alola, Galar e Paldea + DLCs disponíveis)
+- Marcação de Visto, Capturado, Shiny e Pokémon HOME
+- Living Dex / Shiny Dex / HOME com contadores independentes
+- Form Dex: abre o Pokémon e carrega variações/formas disponíveis na API
+- Dashboard de progresso por geração
+- Busca por nome ou número
+- Filtro de faltantes/vistos/capturados
+- Tema claro/escuro
+- Backup e restauração por arquivo JSON
+- Progresso salvo em `localStorage`, sem login e sem servidor
+
+## Observações
+
+- Dados e imagens precisam de internet para serem carregados da PokéAPI/PokeAPI sprites. O progresso em si fica somente no navegador.
+- A cobertura de formas e dex regionais depende do que a PokéAPI expõe.
+- Para levar seu progresso para outro navegador/computador, use Exportar backup / Importar backup.
+
+
+## V2 — Pokédex por jogo
+Nova seção **Por jogo**, com progresso independente por título/série, de Red/Green/Blue e Yellow até Scarlet/Violet, DLC e Pokémon Legends: Z-A. O progresso continua salvo localmente.
+
+
+## V3 — marcação rápida e conquistas
+- Na aba **Por jogo**, cada Pokémon ganhou um botão grande de check **Marcar como pego / ✓ Peguei!**.
+- Ao completar 100% de uma Pokédex de jogo, aparece uma comemoração com troféu.
+- Pokémon obtidos podem gerar um post para o X.
+- Ao completar um jogo, a tela de conquista também gera um post para o X e permite copiar o texto.
+
+## V4 — navegação por geração → jogo → Pokémon
+A navegação principal agora é hierárquica. Abra uma geração na lateral, escolha um jogo ou veja os Pokémon introduzidos naquela geração. Ao abrir um Pokémon, todas as coleções dele ficam centralizadas em abas: Living Dex, Form Dex, Shiny Dex, Jogos/Regional e Pokémon HOME. O save continua usando a mesma chave local das versões anteriores.
+
+
+## Marcar jogo inteiro
+Na página de cada jogo há um botão **✓ Marcar todos como pegos**. Ele marca de uma vez todos os Pokémon ainda faltantes daquele jogo e dispara a comemoração quando a Pokédex chega a 100%.
+
+
+## PWA / Web App instalável
+Esta versão inclui `manifest.webmanifest`, service worker e ícones. Abra por **HTTPS** ou em `localhost` e use o botão **Instalar app** quando o navegador disponibilizar. O progresso continua no `localStorage`; use Exportar backup regularmente para ter uma cópia fora do navegador.
+
+O service worker mantém o app shell em cache e guarda respostas/sprites já visitados. A primeira carga da lista completa ainda precisa de internet; depois, conteúdo já cacheado pode abrir offline.
+
+## Backup
+O export gera um JSON versionado com Pokémon, formas, progresso por jogo e jogos concluídos. O import valida a estrutura, mostra um resumo e pede confirmação antes de substituir o save atual. Backups antigos continuam aceitos.
