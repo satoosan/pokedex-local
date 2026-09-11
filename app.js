@@ -52,12 +52,12 @@ function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));renderSta
 function pstate(id){const s=state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false,manualCaught:false});if(s.manualCaught===undefined)s.manualCaught=false;return s}
 function gameState(gameId,id){state.games[gameId]||={};return state.games[gameId][id]||(state.games[gameId][id]={caught:false})}
 function anyGameCaught(id){return Object.values(state.games||{}).some(game=>!!game?.[id]?.caught)}
-function recomputeNationalCaught(id){const s=pstate(id);s.caught=!!s.manualCaught||anyGameCaught(id);if(s.caught)s.seen=true;return s.caught}
+function recomputeNationalCaught(id){const s=pstate(id);s.caught=!!s.manualCaught||anyGameCaught(id);s.seen=s.caught;return s.caught}
 function markNationalCaught(id){const s=pstate(id);s.caught=true;s.seen=true}
 function migrateCatchSources(){
   let changed=false;
-  Object.entries(state.pokemon||{}).forEach(([id,s])=>{const fromGame=anyGameCaught(id);if(s.manualCaught===undefined){s.manualCaught=!!s.caught&&!fromGame;changed=true}const next=!!s.manualCaught||fromGame;if(s.caught!==next){s.caught=next;changed=true}if(next&&!s.seen){s.seen=true;changed=true}});
-  Object.values(state.games||{}).forEach(game=>Object.entries(game||{}).forEach(([id,data])=>{if(data?.caught){const s=pstate(Number(id));const next=!!s.manualCaught||true;if(!s.caught){s.caught=next;s.seen=true;changed=true}}}));
+  Object.entries(state.pokemon||{}).forEach(([id,s])=>{const fromGame=anyGameCaught(id);if(s.manualCaught===undefined){s.manualCaught=!!s.caught&&!fromGame;changed=true}const next=!!s.manualCaught||fromGame;if(s.caught!==next){s.caught=next;changed=true}if(s.seen!==next){s.seen=next;changed=true}});
+  Object.values(state.games||{}).forEach(game=>Object.entries(game||{}).forEach(([id,data])=>{if(data?.caught){const s=pstate(Number(id));const next=!!s.manualCaught||true;if(!s.caught){s.caught=next;changed=true}if(s.seen!==next){s.seen=next;changed=true}}}));
   if(changed)localStorage.setItem(STORAGE,JSON.stringify(state));
 }
 function syncGameCatchesToNational(){migrateCatchSources()}

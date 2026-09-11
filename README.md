@@ -95,3 +95,7 @@ Ao marcar um Pokémon como pego em qualquer jogo, ele também é marcado automat
 - **Desmarcar todos** em uma Pokédex de jogo, com confirmação e recálculo da National Dex.
 - **Zerar save completo**, com confirmação dupla. O reset apaga somente o progresso; tema e instalação PWA permanecem.
 - O backup agora é exportado como versão 6.1.
+
+
+## V6.2 — Encontrados sincronizados
+O contador **Encontrados** agora acompanha a National/Living Dex: pegar um Pokémon em qualquer jogo marca também como encontrado; ao desmarcar sua última origem, ele deixa de contar como encontrado. Saves antigos são recalculados automaticamente ao abrir.
