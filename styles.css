@@ -103,3 +103,5 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 @media(max-width:520px){
   .home-selection-actions{grid-template-columns:1fr}
 }
+
+.version-exclusive{display:inline-flex;max-width:92%;margin:5px auto 0;padding:4px 7px;border-radius:999px;border:1px solid rgba(255,184,76,.35);background:rgba(255,184,76,.09);color:#f4bd61;font-size:8px;font-weight:900;text-align:center}

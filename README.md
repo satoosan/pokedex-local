@@ -111,3 +111,7 @@ Foi adicionada uma tela própria **⌂ Pokémon HOME**. Nela é possível marcar
 
 ## V7.2 — Seleção em lote do Pokémon HOME
 Na tela **Pokémon HOME**, cada card agora possui um checkbox no canto superior. É possível selecionar apenas alguns Pokémon e usar **Mandar selecionados para o HOME** ou **Tirar selecionados do HOME**. Também há atalhos para **Selecionar visíveis**, **Selecionar fora do HOME** e **Limpar seleção**. Listas por jogo são deduplicadas por espécie para evitar repetição do mesmo Pokémon.
+
+
+## V7.3 — Version Exclusives
+Jogos pareados agora mostram badges `🔒 Exclusivo de [versão]`, filtro **Exclusivos**, e a informação também aparece na ficha em Jogos / Regional. A classificação é por obtenção nativa, sem contar HOME/transferência.
