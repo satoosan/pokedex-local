@@ -49,14 +49,14 @@
       </div>
       <div class="dashboard-grid">
         <section class="panel"><div class="panel-head"><p class="eyebrow">JOGOS</p><h3>Escolha onde continuar</h3></div><div id="generationCards" class="generation-cards"></div></section>
-        <section class="panel"><div class="panel-head"><p class="eyebrow">CONQUISTAS</p><h3>Sua coleção</h3></div><div id="goalCards" class="goal-grid"></div></section>
+        <div class="dashboard-side"><section class="panel"><div class="panel-head"><p class="eyebrow">CONQUISTAS</p><h3>Medalhas da jornada</h3></div><div id="goalCards" class="goal-grid"></div></section><section class="panel"><div class="panel-head"><p class="eyebrow">TIMELINE</p><h3>Últimas conquistas</h3></div><div id="timelineCards" class="timeline-list"></div></section></div>
       </div>
     </section>
 
     <section id="dexView" class="view">
       <div id="contextSwitcher" class="context-switcher"></div>
       <div class="toolbar">
-        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><button id="markAllGameBtn" class="bulk-catch hidden" type="button">✓ Marcar todos como pegos</button>
+        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><div class="segmented view-toggle" id="viewMode"><button class="active" data-viewmode="cards">▦ Cards</button><button data-viewmode="boxes">▦ Boxes</button></div><button id="markAllGameBtn" class="bulk-catch hidden" type="button">✓ Marcar todos como pegos</button>
       </div>
       <div class="summary-strip"><div><small id="dexLabel">National Dex</small><strong id="dexSummary">0 / 0</strong></div><div class="bar"><span id="dexBar"></span></div><div id="dexRemaining">0 faltando</div></div>
       <div id="pokemonGrid" class="pokemon-grid"></div>

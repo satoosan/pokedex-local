@@ -40,19 +40,29 @@ const games=[
 
 let allPokemon=[], currentList=[], state=loadState();
 let route={type:'dashboard',gen:null,game:null};
-let statusFilter='all', search='';
+let statusFilter='all', search='', viewMode='cards';
 const gameDexCache={};
 const dexDataCache={};
 
 function loadState(){
-  try{const s=JSON.parse(localStorage.getItem(STORAGE))||{};s.pokemon||={};s.forms||={};s.games||={};s.celebratedGames||={};return s}
-  catch{return {pokemon:{},forms:{},games:{},celebratedGames:{}}}
+  try{const s=JSON.parse(localStorage.getItem(STORAGE))||{};s.pokemon||={};s.forms||={};s.games||={};s.celebratedGames||={};s.timeline||=[];return s}
+  catch{return {pokemon:{},forms:{},games:{},celebratedGames:{},timeline:[]}}
 }
 function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));renderStats()}
-function pstate(id){return state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false})}
+function pstate(id){const s=state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false,manualCaught:false});if(s.manualCaught===undefined)s.manualCaught=false;return s}
 function gameState(gameId,id){state.games[gameId]||={};return state.games[gameId][id]||(state.games[gameId][id]={caught:false})}
+function anyGameCaught(id){return Object.values(state.games||{}).some(game=>!!game?.[id]?.caught)}
+function recomputeNationalCaught(id){const s=pstate(id);s.caught=!!s.manualCaught||anyGameCaught(id);if(s.caught)s.seen=true;return s.caught}
 function markNationalCaught(id){const s=pstate(id);s.caught=true;s.seen=true}
-function syncGameCatchesToNational(){let changed=false;Object.values(state.games||{}).forEach(game=>{Object.entries(game||{}).forEach(([id,data])=>{if(data?.caught){const s=pstate(Number(id));if(!s.caught||!s.seen){s.caught=true;s.seen=true;changed=true}}})});if(changed)localStorage.setItem(STORAGE,JSON.stringify(state))}
+function migrateCatchSources(){
+  let changed=false;
+  Object.entries(state.pokemon||{}).forEach(([id,s])=>{const fromGame=anyGameCaught(id);if(s.manualCaught===undefined){s.manualCaught=!!s.caught&&!fromGame;changed=true}const next=!!s.manualCaught||fromGame;if(s.caught!==next){s.caught=next;changed=true}if(next&&!s.seen){s.seen=true;changed=true}});
+  Object.values(state.games||{}).forEach(game=>Object.entries(game||{}).forEach(([id,data])=>{if(data?.caught){const s=pstate(Number(id));const next=!!s.manualCaught||true;if(!s.caught){s.caught=next;s.seen=true;changed=true}}}));
+  if(changed)localStorage.setItem(STORAGE,JSON.stringify(state));
+}
+function syncGameCatchesToNational(){migrateCatchSources()}
+function recordEvent(type,data={}){state.timeline||=[];state.timeline.unshift({type,at:new Date().toISOString(),...data});state.timeline=state.timeline.slice(0,80)}
+function toggleManualCatch(id){const s=pstate(id);s.manualCaught=!s.manualCaught;recomputeNationalCaught(id);if(s.manualCaught)recordEvent('pokemon',{id});return s.caught}
 function capitalize(s){return String(s||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
 function idFromUrl(url){return Number(url.match(/\/(\d+)\/$/)?.[1]||0)}
 function genFor(id){return gens.find(g=>id>=g.range[0]&&id<=g.range[1])||gens.at(-1)}
@@ -64,7 +74,7 @@ async function boot(){
     const data=cached?JSON.parse(cached):await fetch(`${API}/pokemon-species?limit=2000`).then(r=>r.json());
     if(!cached)sessionStorage.setItem('pokedex-species',JSON.stringify(data));
     allPokemon=data.results.map(x=>({id:idFromUrl(x.url),name:x.name,url:x.url})).filter(x=>x.id>0).sort((a,b)=>a.id-b.id);
-    syncGameCatchesToNational();
+    migrateCatchSources();
     buildGenerationNav(); renderDashboard();
     preloadGameDexes().then(()=>{if(route.type==='dashboard')renderDashboard()}).catch(console.warn);
   }catch(e){document.getElementById('loading').textContent='Não consegui acessar a PokéAPI. Confira a internet e recarregue.';console.error(e)}
@@ -76,6 +86,7 @@ function setupUI(){
   document.querySelectorAll('[data-route]').forEach(b=>b.onclick=()=>navigate({type:b.dataset.route}));
   document.getElementById('searchInput').oninput=e=>{search=e.target.value.trim().toLowerCase(); if(route.type!=='dashboard')renderGrid()};
   document.getElementById('statusFilter').onclick=e=>{const b=e.target.closest('button[data-status]');if(!b)return;statusFilter=b.dataset.status;document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x===b));renderGrid()};
+  document.getElementById('viewMode').onclick=e=>{const b=e.target.closest('button[data-viewmode]');if(!b)return;viewMode=b.dataset.viewmode;document.querySelectorAll('#viewMode button').forEach(x=>x.classList.toggle('active',x===b));renderGrid()};
   document.getElementById('exportBtn').onclick=exportBackup; document.getElementById('importInput').onchange=importBackup;
   document.getElementById('closeDialog').onclick=()=>document.getElementById('pokemonDialog').close();
   document.getElementById('closeCelebration').onclick=()=>document.getElementById('celebrationDialog').close();
@@ -156,6 +167,7 @@ function filteredBase(){
 }
 function renderGrid(){
   const grid=document.getElementById('pokemonGrid'),list=filteredBase();document.getElementById('loading').style.display='none';
+  grid.classList.toggle('box-mode',viewMode==='boxes');
   grid.innerHTML=list.map(cardHTML).join('')||'<div class="empty-state">Nenhum Pokémon encontrado com esses filtros.</div>';
   grid.querySelectorAll('.pokemon-card').forEach(card=>{
     const id=Number(card.dataset.id);
@@ -169,7 +181,8 @@ function renderGrid(){
 function cardHTML(p){
   const s=pstate(p.id), gameCaught=route.type==='game'?gameState(route.game,p.id).caught:null, caught=route.type==='game'?gameCaught:s.caught;
   const no=p.regionalNo?String(p.regionalNo).padStart(3,'0'):String(p.id).padStart(4,'0');
-  return `<article class="pokemon-card ${caught?'caught':''}" data-id="${p.id}"><button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4><div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''}" data-quick-catch>${caught?'✓ Peguei!':'○ Marcar como pego'}</button>${caught?'<button class="share-mini" data-share-pokemon title="Compartilhar no X">↗ X</button>':''}</div></article>`;
+  const sourceNote=route.type!=='game'&&caught&&!s.manualCaught&&anyGameCaught(p.id)?'Via jogo':'';
+  return `<article class="pokemon-card ${caught?'caught':''}" data-id="${p.id}"><button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4>${sourceNote?`<small class="source-note">${sourceNote}</small>`:''}<div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''}" data-quick-catch>${caught?'✓ Peguei!':'○ Marcar como pego'}</button>${caught?'<button class="share-mini" data-share-pokemon title="Compartilhar no X">↗ X</button>':''}</div></article>`;
 }
 
 function updateBulkCatchButton(){
@@ -189,13 +202,14 @@ function markAllGameCaught(){
   if(!missing.length)return;
   const ok=confirm(`Marcar ${missing.length} Pokémon restantes de ${game.name} como pegos?`);
   if(!ok)return;
-  missing.forEach(p=>{gameState(route.game,p.id).caught=true;markNationalCaught(p.id)});
-  persist();renderGrid();checkGameCompletion(route.game);
+  missing.forEach(p=>{gameState(route.game,p.id).caught=true;recomputeNationalCaught(p.id)});
+  recordEvent('bulk',{game:route.game,count:missing.length});persist();renderGrid();checkGameCompletion(route.game);
 }
 
 function toggleQuickCatch(id){
-  if(route.type==='game'){const gs=gameState(route.game,id);gs.caught=!gs.caught;if(gs.caught)markNationalCaught(id);persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)}
-  else{const s=pstate(id);s.caught=!s.caught;if(s.caught)s.seen=true;persist();renderGrid()}
+  if(route.type==='game'){
+    const gs=gameState(route.game,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:route.game});persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)
+  }else{toggleManualCatch(id);persist();renderGrid()}
 }
 function updateSummary(){
   const base=currentList;const done=route.type==='game'?base.filter(p=>gameState(route.game,p.id).caught).length:base.filter(p=>pstate(p.id).caught).length;const total=base.length,pct=total?done/total*100:0;
@@ -203,7 +217,7 @@ function updateSummary(){
   document.getElementById('dexLabel').textContent=label;document.getElementById('dexSummary').textContent=`${done} / ${total}`;document.getElementById('dexRemaining').textContent=done===total&&total?'Completa! 🏆':`${Math.max(0,total-done)} faltando`;document.getElementById('dexBar').style.width=`${pct}%`;
 }
 
-function renderDashboard(){renderStats();renderGameCards();renderGoals()}
+function renderDashboard(){renderStats();renderGameCards();renderGoals();renderTimeline()}
 function renderStats(){
   const vals={seen:0,caught:0,shiny:0,home:0};allPokemon.forEach(p=>{const s=pstate(p.id);Object.keys(vals).forEach(k=>vals[k]+=s[k]?1:0)});Object.keys(vals).forEach(k=>{const e=document.getElementById(`${k}Stat`);if(e)e.textContent=vals[k]});const total=allPokemon.length,pct=total?Math.round(vals.caught/total*100):0;document.getElementById('mainRing').style.setProperty('--p',`${pct*3.6}deg`);document.getElementById('mainPercent').textContent=`${pct}%`;document.getElementById('mainProgressText').textContent=`${vals.caught} / ${total} na Living Dex`;
 }
@@ -212,14 +226,33 @@ function renderGameCards(){
   el.innerHTML=gens.map(g=>`<section class="dashboard-gen"><div class="dashboard-gen-head"><span class="gen-badge">${g.name}</span><div><strong>${g.region}</strong><small>${games.filter(x=>x.gen===g.id).length} ${games.filter(x=>x.gen===g.id).length===1?'jogo':'jogos'}</small></div></div><div class="dashboard-game-grid">${games.filter(x=>x.gen===g.id).map(game=>{const pr=gameProgress(game.id),pct=pr.total?Math.round(pr.done/pr.total*100):0;return `<button class="dashboard-game-card ${pr.complete?'complete':''}" data-open-game="${game.id}" data-gen="${g.id}"><div><strong>${pr.complete?'🏆 ':''}${game.name}</strong><small>${pr.complete?'Pokédex completa!':'Continuar Pokédex'}</small></div><div class="gen-progress"><b>${pct}%</b><span>${pr.done}/${pr.total}</span></div></button>`}).join('')}</div></section>`).join('');
   el.querySelectorAll('[data-open-game]').forEach(b=>b.onclick=()=>navigate({type:'game',gen:Number(b.dataset.gen),game:b.dataset.openGame}));
 }
-function renderGoals(){const total=allPokemon.length,c=allPokemon.filter(p=>pstate(p.id).caught).length,sh=allPokemon.filter(p=>pstate(p.id).shiny).length,ho=allPokemon.filter(p=>pstate(p.id).home).length,forms=Object.values(state.forms).filter(Boolean).length,completed=games.filter(g=>gameProgress(g.id).complete).length;document.getElementById('goalCards').innerHTML=`<div class="goal-card"><strong>● Living Dex</strong><small>${c}/${total} espécies</small></div><div class="goal-card"><strong>✦ Shiny Dex</strong><small>${sh}/${total} shinies</small></div><div class="goal-card"><strong>◇ Form Dex</strong><small>${forms} formas extras</small></div><div class="goal-card"><strong>⌂ Pokémon HOME</strong><small>${ho}/${total} enviados</small></div><div class="goal-card"><strong>🏆 Jogos completos</strong><small>${completed}/${games.length} Pokédex concluídas</small></div>`}
+function renderGoals(){
+  const total=allPokemon.length,c=allPokemon.filter(p=>pstate(p.id).caught).length,sh=allPokemon.filter(p=>pstate(p.id).shiny).length,completed=games.filter(g=>gameProgress(g.id).complete).length;
+  const achievements=[
+    ['🌱','Primeiro parceiro',c>=1,'Capture seu primeiro Pokémon'],
+    ['🥉','Colecionador',c>=100,'100 Pokémon na Living Dex'],
+    ['🥈','Veterano',c>=500,'500 Pokémon na Living Dex'],
+    ['🥇','National Master',total>0&&c===total,'Complete a National Dex'],
+    ['✨','Brilhou!',sh>=1,'Registre seu primeiro shiny'],
+    ['🌟','Shiny Hunter',sh>=100,'Registre 100 shinies'],
+    ['🏆','Mestre de jogo',completed>=1,'Complete uma Pokédex de jogo'],
+    ['👑','Lenda',completed===games.length&&games.length>0,'Complete todos os jogos']
+  ];
+  document.getElementById('goalCards').innerHTML=achievements.map(([icon,name,on,desc])=>`<div class="achievement ${on?'unlocked':'locked'}"><span>${on?icon:'◌'}</span><div><strong>${name}</strong><small>${on?'✓ Desbloqueada':desc}</small></div></div>`).join('');
+}
+function renderTimeline(){
+  const el=document.getElementById('timelineCards');if(!el)return;const items=(state.timeline||[]).slice(0,8);
+  el.innerHTML=items.length?items.map(ev=>{const d=new Date(ev.at),when=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});if(ev.type==='game')return `<div class="timeline-item"><span>🏆</span><div><strong>${games.find(g=>g.id===ev.game)?.name||'Pokédex'} completa</strong><small>${when}</small></div></div>`;if(ev.type==='bulk')return `<div class="timeline-item"><span>✓</span><div><strong>${ev.count} Pokémon marcados de uma vez</strong><small>${games.find(g=>g.id===ev.game)?.short||''} • ${when}</small></div></div>`;const p=allPokemon.find(x=>x.id===Number(ev.id));return `<div class="timeline-item"><span>${pstate(Number(ev.id)).shiny?'✨':'●'}</span><div><strong>${capitalize(p?.name||'Pokémon')} registrado</strong><small>${ev.game?(games.find(g=>g.id===ev.game)?.short+' • '):''}${when}</small></div></div>`}).join(''):'<div class="timeline-empty">Suas próximas capturas vão aparecer aqui. ✨</div>';
+}
+
 
 async function openPokemon(id){
   const dlg=document.getElementById('pokemonDialog'),content=document.getElementById('dialogContent'),p=allPokemon.find(x=>x.id===id),s=pstate(id);content.innerHTML='<p class="muted">Carregando detalhes…</p>';dlg.showModal();
-  let species=null,forms=[];try{species=await fetch(`${API}/pokemon-species/${id}`).then(r=>r.json());forms=await Promise.all((species.varieties||[]).slice(0,30).map(async v=>{try{return await fetch(v.pokemon.url).then(r=>r.json())}catch{return null}}))}catch{}
+  let species=null,forms=[],pokemonData=null,evolution=[];try{species=await fetch(`${API}/pokemon-species/${id}`).then(r=>r.json());pokemonData=await fetch(`${API}/pokemon/${id}`).then(r=>r.json());forms=await Promise.all((species.varieties||[]).slice(0,30).map(async v=>{try{return await fetch(v.pokemon.url).then(r=>r.json())}catch{return null}}));if(species?.evolution_chain?.url){const chain=await fetch(species.evolution_chain.url).then(r=>r.json());const walk=n=>{if(!n)return;evolution.push(n.species?.name);(n.evolves_to||[]).forEach(walk)};walk(chain.chain)}}catch{}
   const g=genFor(id);
-  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><p class="muted">Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="home">⌂ HOME</button></div><div id="tabPanel"></div>`;
-  const ctx={id,p,s,species,forms:forms.filter(Boolean)};const show=tab=>{content.querySelectorAll('.detail-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderPokemonTab(ctx,tab)};content.querySelectorAll('.detail-tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));show('living');
+  const types=(pokemonData?.types||[]).map(t=>capitalize(t.type.name));const meta=[types.join(' / '),pokemonData?`${(pokemonData.height/10).toFixed(1)} m`:null,pokemonData?`${(pokemonData.weight/10).toFixed(1)} kg`:null].filter(Boolean);
+  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><div class="poke-meta">${meta.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${evolution.length>1?`Linha evolutiva: ${evolution.map(capitalize).join(' → ')}`:'Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.'}</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="home">⌂ HOME</button></div><div id="tabPanel"></div>`;
+  const ctx={id,p,s,species,forms:forms.filter(Boolean),pokemonData,evolution};const show=tab=>{content.querySelectorAll('.detail-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderPokemonTab(ctx,tab)};content.querySelectorAll('.detail-tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));show('living');
 }
 function renderPokemonTab(ctx,tab){
   const panel=document.getElementById('tabPanel'),{id,p,s,forms}=ctx;
@@ -231,16 +264,24 @@ function renderPokemonTab(ctx,tab){
     const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id);
     panel.innerHTML=`<div><p class="muted">Marque em quais jogos você já obteve este Pokémon. A marcação é independente por jogo.</p><div class="game-status-list">${relevant.map(g=>{const gs=gameState(g.id,id);return `<button class="game-status ${gs.caught?'checked':''}" data-game-toggle="${g.id}"><span><strong>${g.name}</strong><small>Gen ${roman(g.gen)}</small></span><b>${gs.caught?'✓ Peguei':'○ Falta'}</b></button>`}).join('')}</div></div>`;
   }
-  document.getElementById('toggleLiving')?.addEventListener('click',()=>{s.caught=!s.caught;if(s.caught)s.seen=true;persist();renderPokemonTab(ctx,'living');if(route.type!=='dashboard')renderGrid()});
+  document.getElementById('toggleLiving')?.addEventListener('click',()=>{toggleManualCatch(id);persist();renderPokemonTab(ctx,'living');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleHome')?.addEventListener('click',()=>{s.home=!s.home;persist();renderPokemonTab(ctx,'home')});
   panel.querySelectorAll?.('.formCheck').forEach(i=>i.addEventListener('change',e=>{state.forms[i.dataset.form]=e.target.checked;persist();renderPokemonTab(ctx,'forms')}));
-  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;if(gs.caught)markNationalCaught(id);persist();renderPokemonTab(ctx,'games');if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
+  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:b.dataset.gameToggle});persist();renderPokemonTab(ctx,'games');if(route.type!=='dashboard')renderGrid();if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
 }
 
 function gameProgress(gameId){const g=games.find(x=>x.id===gameId),list=gameDexCache[gameId]||allPokemon.filter(p=>p.id>=g.fallback[0]&&p.id<=g.fallback[1]);const done=list.filter(p=>!!state.games?.[gameId]?.[p.id]?.caught).length;const complete=list.length>0&&done===list.length;return{done,total:list.length,complete}}
-function checkGameCompletion(gameId){const pr=gameProgress(gameId);if(!pr.complete||state.celebratedGames[gameId])return;state.celebratedGames[gameId]=new Date().toISOString();persist();showCelebration(gameId,pr.total)}
-function showCelebration(gameId,total){const game=games.find(g=>g.id===gameId),dlg=document.getElementById('celebrationDialog');document.getElementById('celebrationContent').innerHTML=`<div class="celebration-wrap"><div class="trophy">🏆</div><p class="eyebrow">100% COMPLETA</p><h2>PARABÉNS! 🎉</h2><p>Você completou a Pokédex de <strong>${game.name}</strong> com <strong>${total}/${total}</strong> Pokémon!</p><div class="confetti-line">✦ ● ★ ✦ ● ★ ✦</div><div class="celebration-actions"><button class="primary-action" id="shareGameX">Compartilhar no X</button><button class="secondary-action" id="copyGamePost">Copiar texto</button></div></div>`;dlg.showModal();document.getElementById('shareGameX').onclick=()=>openXPost(gameCompletionText(game,total));document.getElementById('copyGamePost').onclick=()=>copyShareText(gameCompletionText(game,total))}
+function checkGameCompletion(gameId){const pr=gameProgress(gameId);if(!pr.complete||state.celebratedGames[gameId])return;state.celebratedGames[gameId]=new Date().toISOString();recordEvent('game',{game:gameId});persist();showCelebration(gameId,pr.total)}
+function showCelebration(gameId,total){const game=games.find(g=>g.id===gameId),dlg=document.getElementById('celebrationDialog');document.getElementById('celebrationContent').innerHTML=`<div class="celebration-wrap"><div class="trophy">🏆</div><p class="eyebrow">100% COMPLETA</p><h2>PARABÉNS! 🎉</h2><p>Você completou a Pokédex de <strong>${game.name}</strong> com <strong>${total}/${total}</strong> Pokémon!</p><div class="confetti-line">✦ ● ★ ✦ ● ★ ✦</div><div class="celebration-actions"><button class="primary-action" id="shareGameX">Compartilhar no X</button><button class="secondary-action" id="copyGamePost">Copiar texto</button><button class="secondary-action" id="downloadGameCard">Baixar card PNG</button></div></div>`;dlg.showModal();document.getElementById('shareGameX').onclick=()=>openXPost(gameCompletionText(game,total));document.getElementById('copyGamePost').onclick=()=>copyShareText(gameCompletionText(game,total));document.getElementById('downloadGameCard').onclick=()=>downloadShareCard(game,total)}
+
+function downloadShareCard(game,total){
+  const c=document.createElement('canvas');c.width=1200;c.height=630;const x=c.getContext('2d');
+  const grad=x.createLinearGradient(0,0,1200,630);grad.addColorStop(0,'#111827');grad.addColorStop(1,'#202a42');x.fillStyle=grad;x.fillRect(0,0,1200,630);
+  x.fillStyle='#ef4d5f';x.beginPath();x.arc(1030,145,85,0,Math.PI*2);x.fill();x.fillStyle='#111827';x.beginPath();x.arc(1030,145,55,0,Math.PI*2);x.fill();x.fillStyle='#ffffff';x.font='700 36px system-ui';x.fillText('MY POKÉDEX',70,90);x.font='900 68px system-ui';x.fillText('🏆 Pokédex Completa!',70,210);x.font='700 42px system-ui';x.fillText(game.name,70,285);x.fillStyle='#b8c1d2';x.font='500 28px system-ui';x.fillText('Sua jornada chegou a 100%.',70,340);x.fillStyle='#ffffff';x.font='900 74px system-ui';x.fillText(`${total} / ${total}`,70,455);x.fillStyle='#29b47d';x.font='800 34px system-ui';x.fillText('100% CONCLUÍDA',70,510);x.fillStyle='#9ca7bd';x.font='500 24px system-ui';x.fillText('#Pokemon  #Pokedex',70,570);
+  const a=document.createElement('a');a.download=`pokedex-${game.id}-completa.png`;a.href=c.toDataURL('image/png');a.click();
+}
+
 function gameCompletionText(game,total){return `🏆 Pokédex completa! Consegui registrar todos os ${total} Pokémon de ${game.name}!\n\nMais uma Dex 100% concluída ✨ #Pokemon #Pokedex`}
 function pokemonShareText(id){const p=allPokemon.find(x=>x.id===id),where=route.type==='game'?` em ${games.find(g=>g.id===route.game)?.name}`:'';return `✅ Peguei ${capitalize(p?.name)} (#${String(id).padStart(4,'0')})${where}!\n\nMais um pra Pokédex ✨ #Pokemon #Pokedex`}
 function openXPost(text){window.open(`https://x.com/intent/post?text=${encodeURIComponent(text)}`,'_blank','noopener,noreferrer')}
@@ -250,15 +291,16 @@ async function copyShareText(text){try{await navigator.clipboard.writeText(text)
 function normalizedState(raw){
   const source=raw?.state||raw;
   if(!source||typeof source!=='object'||Array.isArray(source))throw new Error('Formato de backup inválido.');
-  const out={pokemon:{},forms:{},games:{},celebratedGames:{}};
+  const out={pokemon:{},forms:{},games:{},celebratedGames:{},timeline:[]};
   if(source.pokemon&&typeof source.pokemon==='object')out.pokemon=source.pokemon;
   if(source.forms&&typeof source.forms==='object')out.forms=source.forms;
   if(source.games&&typeof source.games==='object')out.games=source.games;
   if(source.celebratedGames&&typeof source.celebratedGames==='object')out.celebratedGames=source.celebratedGames;
+  if(Array.isArray(source.timeline))out.timeline=source.timeline.slice(0,80);
   return out;
 }
 function exportBackup(){
-  const payload={app:'My Pokédex Tracker',version:4,exportedAt:new Date().toISOString(),state};
+  const payload={app:'My Pokédex Tracker',version:6,exportedAt:new Date().toISOString(),state};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`my-pokedex-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),500);
@@ -272,7 +314,7 @@ function importBackup(e){
     const pokemonCount=Object.keys(imported.pokemon).length;
     const gameCount=Object.keys(imported.games).length;
     if(!confirm(`Importar este backup?\n\nPokémon com dados: ${pokemonCount}\nJogos com progresso: ${gameCount}\n\nSeu progresso atual será substituído.`))return;
-    state=imported;syncGameCatchesToNational();persist();renderDashboard();if(route.type!=='dashboard')renderGrid();alert('Backup importado com sucesso! ✨');
+    state=imported;migrateCatchSources();persist();renderDashboard();if(route.type!=='dashboard')renderGrid();alert('Backup importado com sucesso! ✨');
   }catch(err){console.error(err);alert('Esse arquivo não parece ser um backup válido da Pokédex.')}};
   r.readAsText(file);e.target.value='';
 }

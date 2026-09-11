@@ -79,3 +79,13 @@ O export gera um JSON versionado com Pokémon, formas, progresso por jogo e jogo
 
 ## V5.2 — Sincronização com National Dex
 Ao marcar um Pokémon como pego em qualquer jogo, ele também é marcado automaticamente como capturado/visto na National Dex e na Living Dex global. Desmarcar em um jogo não remove da National Dex, já que o Pokémon pode ter sido obtido em outro jogo. O botão de marcar todos de um jogo também sincroniza tudo com a National Dex.
+
+
+## V6
+- Contadores derivados do estado atual: desmarcar reduz a Living Dex quando não há outra origem.
+- Sincronização por origem: captura em jogo conta na National Dex; ao desmarcar, permanece apenas se estiver em outro jogo ou marcada manualmente.
+- Modo Boxes estilo HOME.
+- Conquistas e timeline local.
+- Página do Pokémon com tipos, altura, peso e linha evolutiva quando disponíveis.
+- Card PNG para compartilhar conclusão de jogo.
+- Backup atualizado para incluir timeline.
