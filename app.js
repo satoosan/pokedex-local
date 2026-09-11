@@ -87,10 +87,10 @@ function setupUI(){
   document.getElementById('searchInput').oninput=e=>{search=e.target.value.trim().toLowerCase(); if(route.type!=='dashboard')renderGrid()};
   document.getElementById('statusFilter').onclick=e=>{const b=e.target.closest('button[data-status]');if(!b)return;statusFilter=b.dataset.status;document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x===b));renderGrid()};
   document.getElementById('viewMode').onclick=e=>{const b=e.target.closest('button[data-viewmode]');if(!b)return;viewMode=b.dataset.viewmode;document.querySelectorAll('#viewMode button').forEach(x=>x.classList.toggle('active',x===b));renderGrid()};
-  document.getElementById('exportBtn').onclick=exportBackup; document.getElementById('importInput').onchange=importBackup;
+  document.getElementById('exportBtn').onclick=exportBackup; document.getElementById('importInput').onchange=importBackup; document.getElementById('resetSaveBtn').onclick=resetFullSave;
   document.getElementById('closeDialog').onclick=()=>document.getElementById('pokemonDialog').close();
   document.getElementById('closeCelebration').onclick=()=>document.getElementById('celebrationDialog').close();
-  document.getElementById('markAllGameBtn').onclick=markAllGameCaught;
+  document.getElementById('markAllGameBtn').onclick=markAllGameCaught; document.getElementById('unmarkAllGameBtn').onclick=unmarkAllGameCaught;
   setupInstallPrompt();
 }
 
@@ -186,16 +186,18 @@ function cardHTML(p){
 }
 
 function updateBulkCatchButton(){
-  const btn=document.getElementById('markAllGameBtn');if(!btn)return;
-  const isGame=route.type==='game';btn.classList.toggle('hidden',!isGame);
+  const wrap=document.getElementById('gameBulkActions'),markBtn=document.getElementById('markAllGameBtn'),unmarkBtn=document.getElementById('unmarkAllGameBtn');
+  if(!wrap||!markBtn||!unmarkBtn)return;
+  const isGame=route.type==='game';wrap.classList.toggle('hidden',!isGame);
   if(!isGame)return;
   const total=currentList.length,done=currentList.filter(p=>gameState(route.game,p.id).caught).length;
   const complete=total>0&&done===total;
-  btn.disabled=complete;
-  btn.classList.toggle('complete',complete);
-  btn.textContent=complete?'✓ Todos já foram pegos!':`✓ Marcar todos como pegos (${total-done})`;
+  markBtn.disabled=complete;
+  markBtn.classList.toggle('complete',complete);
+  markBtn.textContent=complete?'✓ Todos já foram pegos!':`✓ Marcar todos como pegos (${total-done})`;
+  unmarkBtn.disabled=done===0;
+  unmarkBtn.textContent=done===0?'↺ Nenhum marcado':`↺ Desmarcar todos (${done})`;
 }
-
 function markAllGameCaught(){
   if(route.type!=='game'||!currentList.length)return;
   const game=games.find(g=>g.id===route.game);const missing=currentList.filter(p=>!gameState(route.game,p.id).caught);
@@ -206,9 +208,20 @@ function markAllGameCaught(){
   recordEvent('bulk',{game:route.game,count:missing.length});persist();renderGrid();checkGameCompletion(route.game);
 }
 
+function unmarkAllGameCaught(){
+  if(route.type!=='game'||!currentList.length)return;
+  const game=games.find(g=>g.id===route.game),caught=currentList.filter(p=>gameState(route.game,p.id).caught);
+  if(!caught.length)return;
+  const ok=confirm(`Desmarcar os ${caught.length} Pokémon marcados em ${game.name}?\n\nA National Dex será recalculada. Pokémon que também foram obtidos em outro jogo continuarão marcados nela.`);
+  if(!ok)return;
+  caught.forEach(p=>{gameState(route.game,p.id).caught=false;recomputeNationalCaught(p.id)});
+  state.celebratedGames[route.game]=false;
+  recordEvent('bulk-remove',{game:route.game,count:caught.length});persist();renderGrid();
+}
+
 function toggleQuickCatch(id){
   if(route.type==='game'){
-    const gs=gameState(route.game,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:route.game});persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)
+    const gs=gameState(route.game,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:route.game});else if(!gameProgress(route.game).complete)state.celebratedGames[route.game]=false;persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)
   }else{toggleManualCatch(id);persist();renderGrid()}
 }
 function updateSummary(){
@@ -242,7 +255,7 @@ function renderGoals(){
 }
 function renderTimeline(){
   const el=document.getElementById('timelineCards');if(!el)return;const items=(state.timeline||[]).slice(0,8);
-  el.innerHTML=items.length?items.map(ev=>{const d=new Date(ev.at),when=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});if(ev.type==='game')return `<div class="timeline-item"><span>🏆</span><div><strong>${games.find(g=>g.id===ev.game)?.name||'Pokédex'} completa</strong><small>${when}</small></div></div>`;if(ev.type==='bulk')return `<div class="timeline-item"><span>✓</span><div><strong>${ev.count} Pokémon marcados de uma vez</strong><small>${games.find(g=>g.id===ev.game)?.short||''} • ${when}</small></div></div>`;const p=allPokemon.find(x=>x.id===Number(ev.id));return `<div class="timeline-item"><span>${pstate(Number(ev.id)).shiny?'✨':'●'}</span><div><strong>${capitalize(p?.name||'Pokémon')} registrado</strong><small>${ev.game?(games.find(g=>g.id===ev.game)?.short+' • '):''}${when}</small></div></div>`}).join(''):'<div class="timeline-empty">Suas próximas capturas vão aparecer aqui. ✨</div>';
+  el.innerHTML=items.length?items.map(ev=>{const d=new Date(ev.at),when=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});if(ev.type==='game')return `<div class="timeline-item"><span>🏆</span><div><strong>${games.find(g=>g.id===ev.game)?.name||'Pokédex'} completa</strong><small>${when}</small></div></div>`;if(ev.type==='bulk')return `<div class="timeline-item"><span>✓</span><div><strong>${ev.count} Pokémon marcados de uma vez</strong><small>${games.find(g=>g.id===ev.game)?.short||''} • ${when}</small></div></div>`;if(ev.type==='bulk-remove')return `<div class="timeline-item"><span>↺</span><div><strong>${ev.count} Pokémon desmarcados</strong><small>${games.find(g=>g.id===ev.game)?.short||''} • ${when}</small></div></div>`;const p=allPokemon.find(x=>x.id===Number(ev.id));return `<div class="timeline-item"><span>${pstate(Number(ev.id)).shiny?'✨':'●'}</span><div><strong>${capitalize(p?.name||'Pokémon')} registrado</strong><small>${ev.game?(games.find(g=>g.id===ev.game)?.short+' • '):''}${when}</small></div></div>`}).join(''):'<div class="timeline-empty">Suas próximas capturas vão aparecer aqui. ✨</div>';
 }
 
 
@@ -268,7 +281,7 @@ function renderPokemonTab(ctx,tab){
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleHome')?.addEventListener('click',()=>{s.home=!s.home;persist();renderPokemonTab(ctx,'home')});
   panel.querySelectorAll?.('.formCheck').forEach(i=>i.addEventListener('change',e=>{state.forms[i.dataset.form]=e.target.checked;persist();renderPokemonTab(ctx,'forms')}));
-  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:b.dataset.gameToggle});persist();renderPokemonTab(ctx,'games');if(route.type!=='dashboard')renderGrid();if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
+  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:b.dataset.gameToggle});else if(!gameProgress(b.dataset.gameToggle).complete)state.celebratedGames[b.dataset.gameToggle]=false;persist();renderPokemonTab(ctx,'games');if(route.type!=='dashboard')renderGrid();if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
 }
 
 function gameProgress(gameId){const g=games.find(x=>x.id===gameId),list=gameDexCache[gameId]||allPokemon.filter(p=>p.id>=g.fallback[0]&&p.id<=g.fallback[1]);const done=list.filter(p=>!!state.games?.[gameId]?.[p.id]?.caught).length;const complete=list.length>0&&done===list.length;return{done,total:list.length,complete}}
@@ -300,7 +313,7 @@ function normalizedState(raw){
   return out;
 }
 function exportBackup(){
-  const payload={app:'My Pokédex Tracker',version:6,exportedAt:new Date().toISOString(),state};
+  const payload={app:'My Pokédex Tracker',version:6.1,exportedAt:new Date().toISOString(),state};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`my-pokedex-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),500);
@@ -317,6 +330,23 @@ function importBackup(e){
     state=imported;migrateCatchSources();persist();renderDashboard();if(route.type!=='dashboard')renderGrid();alert('Backup importado com sucesso! ✨');
   }catch(err){console.error(err);alert('Esse arquivo não parece ser um backup válido da Pokédex.')}};
   r.readAsText(file);e.target.value='';
+}
+
+function resetFullSave(){
+  const first=confirm('Zerar TODO o seu save da My Pokédex?\n\nIsso apagará:\n• National / Living Dex\n• progresso de todos os jogos\n• Form Dex\n• Shinies\n• Pokémon HOME\n• conquistas e timeline\n\nEssa ação não pode ser desfeita sem um backup.');
+  if(!first)return;
+  const second=confirm('Última confirmação: deseja realmente apagar todo o progresso?\n\nDica: exporte um backup antes se quiser guardar uma cópia.');
+  if(!second)return;
+  localStorage.removeItem(STORAGE);
+  state={pokemon:{},forms:{},games:{},celebratedGames:{},timeline:[]};
+  route={type:'dashboard',gen:null,game:null};
+  search='';statusFilter='all';
+  document.getElementById('searchInput').value='';
+  document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));
+  document.getElementById('pokemonDialog')?.close();
+  document.getElementById('celebrationDialog')?.close();
+  persist();buildGenerationNav();navigate({type:'dashboard'});
+  alert('Save zerado. Sua Pokédex começou do zero novamente. 🌱');
 }
 
 let deferredInstallPrompt=null;

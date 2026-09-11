@@ -89,3 +89,9 @@ Ao marcar um Pokémon como pego em qualquer jogo, ele também é marcado automat
 - Página do Pokémon com tipos, altura, peso e linha evolutiva quando disponíveis.
 - Card PNG para compartilhar conclusão de jogo.
 - Backup atualizado para incluir timeline.
+
+
+## V6.1 — controles de limpeza
+- **Desmarcar todos** em uma Pokédex de jogo, com confirmação e recálculo da National Dex.
+- **Zerar save completo**, com confirmação dupla. O reset apaga somente o progresso; tema e instalação PWA permanecem.
+- O backup agora é exportado como versão 6.1.

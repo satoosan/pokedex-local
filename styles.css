@@ -26,3 +26,11 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 .poke-meta{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.poke-meta span{font-size:11px;padding:6px 9px;background:var(--panel2);border:1px solid var(--line);border-radius:999px}
 .celebration-actions{flex-wrap:wrap}
 @media(max-width:650px){.view-toggle{width:100%;margin-left:0}.view-toggle button{flex:1}.pokemon-grid.box-mode{grid-template-columns:repeat(3,1fr)}.dashboard-side{display:grid}.celebration-actions>*{width:100%}}
+
+
+/* V6.1 — bulk reset controls */
+.game-bulk-actions{margin-left:auto;display:flex;gap:8px;align-items:center}.game-bulk-actions.hidden{display:none!important}
+.game-bulk-actions .bulk-catch{margin-left:0}
+.bulk-uncatch{border:1px solid rgba(239,77,95,.45);background:rgba(239,77,95,.08);color:#e5485d;border-radius:12px;padding:9px 14px;font-weight:900;cursor:pointer;white-space:nowrap}.bulk-uncatch:hover{background:rgba(239,77,95,.14)}.bulk-uncatch:disabled{opacity:.5;cursor:default}
+.danger-action{width:100%;border:1px solid rgba(239,77,95,.45);background:rgba(239,77,95,.08);color:#ef5c6c;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer}.danger-action:hover{background:rgba(239,77,95,.14)}
+@media(max-width:650px){.game-bulk-actions{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr}.game-bulk-actions .bulk-catch,.bulk-uncatch{width:100%;margin:0}.game-bulk-actions .bulk-catch{white-space:normal}}

@@ -27,6 +27,7 @@
     <div class="sidebar-footer">
       <button id="exportBtn" class="secondary">Exportar backup</button>
       <label class="secondary file-label">Importar backup<input type="file" id="importInput" accept="application/json" /></label>
+      <button id="resetSaveBtn" class="danger-action" type="button">Zerar save completo</button>
     </div>
   </aside>
 
@@ -56,7 +57,7 @@
     <section id="dexView" class="view">
       <div id="contextSwitcher" class="context-switcher"></div>
       <div class="toolbar">
-        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><div class="segmented view-toggle" id="viewMode"><button class="active" data-viewmode="cards">▦ Cards</button><button data-viewmode="boxes">▦ Boxes</button></div><button id="markAllGameBtn" class="bulk-catch hidden" type="button">✓ Marcar todos como pegos</button>
+        <div class="segmented" id="statusFilter"><button class="active" data-status="all">Todos</button><button data-status="missing">Faltando</button><button data-status="caught">Peguei</button><button data-status="shiny">Shiny</button></div><div class="segmented view-toggle" id="viewMode"><button class="active" data-viewmode="cards">▦ Cards</button><button data-viewmode="boxes">▦ Boxes</button></div><div id="gameBulkActions" class="game-bulk-actions hidden"><button id="markAllGameBtn" class="bulk-catch" type="button">✓ Marcar todos como pegos</button><button id="unmarkAllGameBtn" class="bulk-uncatch" type="button">↺ Desmarcar todos</button></div>
       </div>
       <div class="summary-strip"><div><small id="dexLabel">National Dex</small><strong id="dexSummary">0 / 0</strong></div><div class="bar"><span id="dexBar"></span></div><div id="dexRemaining">0 faltando</div></div>
       <div id="pokemonGrid" class="pokemon-grid"></div>
