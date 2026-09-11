@@ -75,3 +75,7 @@ O export gera um JSON versionado com Pokémon, formas, progresso por jogo e jogo
 - O Dashboard mostra progresso separado por jogo dentro de cada geração, incluindo 100% e troféu.
 - O progresso usa a Pokédex regional do jogo quando disponível na PokéAPI.
 - Corrigido o botão de instalação para não cortar o texto.
+
+
+## V5.2 — Sincronização com National Dex
+Ao marcar um Pokémon como pego em qualquer jogo, ele também é marcado automaticamente como capturado/visto na National Dex e na Living Dex global. Desmarcar em um jogo não remove da National Dex, já que o Pokémon pode ter sido obtido em outro jogo. O botão de marcar todos de um jogo também sincroniza tudo com a National Dex.

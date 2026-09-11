@@ -51,6 +51,8 @@ function loadState(){
 function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));renderStats()}
 function pstate(id){return state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false})}
 function gameState(gameId,id){state.games[gameId]||={};return state.games[gameId][id]||(state.games[gameId][id]={caught:false})}
+function markNationalCaught(id){const s=pstate(id);s.caught=true;s.seen=true}
+function syncGameCatchesToNational(){let changed=false;Object.values(state.games||{}).forEach(game=>{Object.entries(game||{}).forEach(([id,data])=>{if(data?.caught){const s=pstate(Number(id));if(!s.caught||!s.seen){s.caught=true;s.seen=true;changed=true}}})});if(changed)localStorage.setItem(STORAGE,JSON.stringify(state))}
 function capitalize(s){return String(s||'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
 function idFromUrl(url){return Number(url.match(/\/(\d+)\/$/)?.[1]||0)}
 function genFor(id){return gens.find(g=>id>=g.range[0]&&id<=g.range[1])||gens.at(-1)}
@@ -62,6 +64,7 @@ async function boot(){
     const data=cached?JSON.parse(cached):await fetch(`${API}/pokemon-species?limit=2000`).then(r=>r.json());
     if(!cached)sessionStorage.setItem('pokedex-species',JSON.stringify(data));
     allPokemon=data.results.map(x=>({id:idFromUrl(x.url),name:x.name,url:x.url})).filter(x=>x.id>0).sort((a,b)=>a.id-b.id);
+    syncGameCatchesToNational();
     buildGenerationNav(); renderDashboard();
     preloadGameDexes().then(()=>{if(route.type==='dashboard')renderDashboard()}).catch(console.warn);
   }catch(e){document.getElementById('loading').textContent='Não consegui acessar a PokéAPI. Confira a internet e recarregue.';console.error(e)}
@@ -186,12 +189,12 @@ function markAllGameCaught(){
   if(!missing.length)return;
   const ok=confirm(`Marcar ${missing.length} Pokémon restantes de ${game.name} como pegos?`);
   if(!ok)return;
-  missing.forEach(p=>{gameState(route.game,p.id).caught=true});
+  missing.forEach(p=>{gameState(route.game,p.id).caught=true;markNationalCaught(p.id)});
   persist();renderGrid();checkGameCompletion(route.game);
 }
 
 function toggleQuickCatch(id){
-  if(route.type==='game'){const gs=gameState(route.game,id);gs.caught=!gs.caught;persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)}
+  if(route.type==='game'){const gs=gameState(route.game,id);gs.caught=!gs.caught;if(gs.caught)markNationalCaught(id);persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)}
   else{const s=pstate(id);s.caught=!s.caught;if(s.caught)s.seen=true;persist();renderGrid()}
 }
 function updateSummary(){
@@ -232,7 +235,7 @@ function renderPokemonTab(ctx,tab){
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleHome')?.addEventListener('click',()=>{s.home=!s.home;persist();renderPokemonTab(ctx,'home')});
   panel.querySelectorAll?.('.formCheck').forEach(i=>i.addEventListener('change',e=>{state.forms[i.dataset.form]=e.target.checked;persist();renderPokemonTab(ctx,'forms')}));
-  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;persist();renderPokemonTab(ctx,'games');if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
+  panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;if(gs.caught)markNationalCaught(id);persist();renderPokemonTab(ctx,'games');if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
 }
 
 function gameProgress(gameId){const g=games.find(x=>x.id===gameId),list=gameDexCache[gameId]||allPokemon.filter(p=>p.id>=g.fallback[0]&&p.id<=g.fallback[1]);const done=list.filter(p=>!!state.games?.[gameId]?.[p.id]?.caught).length;const complete=list.length>0&&done===list.length;return{done,total:list.length,complete}}
@@ -255,7 +258,7 @@ function normalizedState(raw){
   return out;
 }
 function exportBackup(){
-  const payload={app:'My Pokédex Tracker',version:3,exportedAt:new Date().toISOString(),state};
+  const payload={app:'My Pokédex Tracker',version:4,exportedAt:new Date().toISOString(),state};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`my-pokedex-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),500);
@@ -269,7 +272,7 @@ function importBackup(e){
     const pokemonCount=Object.keys(imported.pokemon).length;
     const gameCount=Object.keys(imported.games).length;
     if(!confirm(`Importar este backup?\n\nPokémon com dados: ${pokemonCount}\nJogos com progresso: ${gameCount}\n\nSeu progresso atual será substituído.`))return;
-    state=imported;persist();renderDashboard();if(route.type!=='dashboard')renderGrid();alert('Backup importado com sucesso! ✨');
+    state=imported;syncGameCatchesToNational();persist();renderDashboard();if(route.type!=='dashboard')renderGrid();alert('Backup importado com sucesso! ✨');
   }catch(err){console.error(err);alert('Esse arquivo não parece ser um backup válido da Pokédex.')}};
   r.readAsText(file);e.target.value='';
 }
