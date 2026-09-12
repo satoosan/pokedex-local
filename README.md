@@ -127,3 +127,11 @@ Jogos que possuem **National Dex** agora exibem um aviso com a condição de des
 Nos jogos que possuem National Dex, a tela do jogo agora fica dividida em duas partes: **Dex Regional** primeiro e, logo abaixo, **National Dex • Pós-game**.
 
 A segunda grade mostra todas as espécies até a geração daquele jogo que não fazem parte da Pokédex regional, ou seja, as espécies adicionadas à visão da National Dex após o desbloqueio. O texto do jogo continua mostrando a condição correta de desbloqueio (por exemplo, em ORAS após Groudon/Kyogre). A seção deixa explícito que estar na National Dex não garante que a espécie seja capturável nativamente naquele jogo.
+
+
+## V7.6 — National Dex filtrada por disponibilidade real
+A seção **National Dex • Pós-game** deixou de listar simplesmente todos os Pokémon nacionais até aquela geração. Agora ela consulta os encontros da PokéAPI e mostra somente espécies que possuem encontro nativo registrado nas versões daquele jogo.
+
+Exemplo: em **Omega Ruby / Alpha Sapphire**, a seção pós-National mostra apenas Pokémon com encontros registrados em `omega-ruby` ou `alpha-sapphire`, em vez de exibir toda a National Dex da Geração VI. O resultado é salvo em cache local depois da primeira verificação.
+
+Importante: essa grade é de **Pokémon que aparecem/encontram-se no jogo**. Pokémon obtidos exclusivamente por troca, presente, evento, evolução sem encontro próprio ou transferência não entram automaticamente nessa grade.

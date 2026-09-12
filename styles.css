@@ -125,3 +125,9 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 .national-postgame-section .dex-section-head{border-color:rgba(89,190,255,.28);background:rgba(89,190,255,.06)}
 #regionalDexHeading{margin-top:0}
 @media(max-width:700px){.dex-section-head{flex-direction:column}.dex-section-count{align-self:flex-start}}
+
+/* V7.6 — pós-National filtrado por encontro nativo */
+.national-loading{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:140px;padding:20px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}
+.national-loading strong{font-size:11px;color:var(--text)}.national-loading small{font-size:9px}
+.spinner{width:22px;height:22px;border:3px solid var(--line);border-top-color:currentColor;border-radius:50%;animation:natspin .8s linear infinite}
+@keyframes natspin{to{transform:rotate(360deg)}}
