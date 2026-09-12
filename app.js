@@ -117,7 +117,7 @@ async function navigate(next){
   document.querySelectorAll('.main-nav .nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===next.type));
   document.querySelectorAll('.game-nav,.gen-nav-head').forEach(b=>b.classList.remove('active'));
   updateBulkCatchButton();updateHomeSelectionBar();
-  if(next.type==='dashboard'){setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
+  if(next.type==='dashboard'){document.getElementById('regionalDexHeading')?.classList.add('hidden');document.getElementById('nationalPostgameSection')?.classList.add('hidden');setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
   if(next.type==='national'){setHeading('NATIONAL DEX','National Dex','Todos os Pokémon em uma única lista.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='home'){setHeading('POKÉMON HOME','Coleção no HOME','Marque exatamente quais Pokémon você já enviou ao Pokémon HOME.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='generation'){route={type:'dashboard',gen:null,game:null};setHeading('PROGRESSO GERAL','Dashboard','');document.getElementById('dashboardView').classList.add('active-view');document.getElementById('dexView').classList.remove('active-view');renderDashboard();return}
@@ -170,25 +170,64 @@ async function loadGame(game){
 
 function exclusiveInfo(gameId,id){const g=VERSION_EXCLUSIVES[gameId];if(!g)return null;for(const [version,ids] of Object.entries(g))if(ids.includes(Number(id)))return {version};return null}
 function exclusiveBadge(gameId,id){const x=exclusiveInfo(gameId,id);return x?`<span class="version-exclusive">🔒 Exclusivo de ${x.version}</span>`:''}
-function filteredBase(){
-  return currentList.filter(p=>{
-    const s=pstate(p.id);const caught=route.type==='game'?gameState(route.game,p.id).caught:route.type==='home'?s.home:s.caught;
+
+function nationalDexPostgameList(game){
+  if(!NATIONAL_DEX_INFO[game.id])return [];
+  const regionalIds=new Set((gameDexCache[game.id]||currentList||[]).map(p=>Number(p.id)));
+  const cap=(gens.find(g=>g.id===game.gen)?.range?.[1]||0);
+  return allPokemon.filter(p=>p.id<=cap&&!regionalIds.has(Number(p.id)));
+}
+function filterPokemonList(list){
+  return list.filter(p=>{
+    const s=pstate(p.id);
+    const caught=route.type==='game'?gameState(route.game,p.id).caught:route.type==='home'?s.home:s.caught;
     if(search && !p.name.includes(search) && !String(p.id).includes(search))return false;
-    if(statusFilter==='missing'&&caught)return false;if(statusFilter==='caught'&&!caught)return false;if(statusFilter==='shiny'&&!s.shiny)return false;if(statusFilter==='exclusive'&&!(route.type==='game'&&exclusiveInfo(route.game,p.id)))return false;return true;
+    if(statusFilter==='missing'&&caught)return false;
+    if(statusFilter==='caught'&&!caught)return false;
+    if(statusFilter==='shiny'&&!s.shiny)return false;
+    if(statusFilter==='exclusive'&&!(route.type==='game'&&exclusiveInfo(route.game,p.id)))return false;
+    return true;
   });
 }
+function bindPokemonGrid(grid){
+  grid.querySelectorAll('.pokemon-card').forEach(card=>{
+    const id=Number(card.dataset.id);
+    card.querySelector('.pokemon-main')?.addEventListener('click',()=>openPokemon(id));
+    card.querySelector('[data-quick-catch]')?.addEventListener('click',e=>{e.stopPropagation();toggleQuickCatch(id)});
+    card.querySelector('[data-home-select]')?.addEventListener('change',e=>{e.stopPropagation();toggleHomeSelection(Number(card.dataset.id),e.target.checked)});
+    card.querySelector('.home-select-box')?.addEventListener('click',e=>e.stopPropagation());
+    card.querySelector('[data-share-pokemon]')?.addEventListener('click',e=>{e.stopPropagation();sharePokemon(id)});
+  });
+}
+function renderNationalPostgame(){
+  const section=document.getElementById('nationalPostgameSection');
+  const regionalHead=document.getElementById('regionalDexHeading');
+  if(!section)return;
+  const isGame=route.type==='game';
+  regionalHead?.classList.toggle('hidden',!isGame);
+  if(!isGame){section.classList.add('hidden');return}
+  const game=games.find(g=>g.id===route.game);
+  const info=NATIONAL_DEX_INFO[game?.id];
+  if(!game||!info){section.classList.add('hidden');return}
+  const full=nationalDexPostgameList(game);
+  const list=filterPokemonList(full);
+  section.classList.remove('hidden');
+  document.getElementById('nationalPostgameTitle').textContent='Pokémon da National Dex';
+  document.getElementById('nationalPostgameNote').textContent=`${info.unlock} A lista abaixo mostra as espécies que entram na National Dex além da Pokédex regional. Nem todas precisam ser capturáveis nativamente neste jogo.`;
+  document.getElementById('nationalPostgameCount').textContent=`${list.length} / ${full.length}`;
+  const grid=document.getElementById('nationalPostgameGrid');
+  grid.classList.toggle('box-mode',viewMode==='boxes');
+  grid.innerHTML=list.map(p=>cardHTML({...p,regionalNo:null})).join('')||'<div class="empty-state">Nenhum Pokémon da National Dex encontrado com esses filtros.</div>';
+  bindPokemonGrid(grid);
+}
+
+function filteredBase(){return filterPokemonList(currentList)}
 function renderGrid(){
   const grid=document.getElementById('pokemonGrid'),list=filteredBase();document.getElementById('loading').style.display='none';
   grid.classList.toggle('box-mode',viewMode==='boxes');
   grid.innerHTML=list.map(cardHTML).join('')||'<div class="empty-state">Nenhum Pokémon encontrado com esses filtros.</div>';
-  grid.querySelectorAll('.pokemon-card').forEach(card=>{
-    const id=Number(card.dataset.id);
-    card.querySelector('.pokemon-main')?.addEventListener('click',()=>openPokemon(id));
-    card.querySelector('[data-quick-catch]')?.addEventListener('click',e=>{e.stopPropagation();
-    card.querySelector('[data-home-select]')?.addEventListener('change',e=>{e.stopPropagation();toggleHomeSelection(Number(card.dataset.id),e.target.checked)});
-    card.querySelector('.home-select-box')?.addEventListener('click',e=>e.stopPropagation());toggleQuickCatch(id)});
-    card.querySelector('[data-share-pokemon]')?.addEventListener('click',e=>{e.stopPropagation();sharePokemon(id)});
-  });
+  bindPokemonGrid(grid);
+  renderNationalPostgame();
   updateSummary();
   updateBulkCatchButton();
 }

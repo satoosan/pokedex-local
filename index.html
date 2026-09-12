@@ -74,7 +74,26 @@
 
       </div>
       <div class="summary-strip"><div><small id="dexLabel">National Dex</small><strong id="dexSummary">0 / 0</strong></div><div class="bar"><span id="dexBar"></span></div><div id="dexRemaining">0 faltando</div></div>
-      <div id="pokemonGrid" class="pokemon-grid"></div>
+      <section id="regionalDexSection" class="dex-section">
+        <div id="regionalDexHeading" class="dex-section-head hidden">
+          <div>
+            <p class="eyebrow">DEX REGIONAL</p>
+            <h3>Pokémon da história principal</h3>
+          </div>
+        </div>
+        <div id="pokemonGrid" class="pokemon-grid"></div>
+      </section>
+      <section id="nationalPostgameSection" class="dex-section national-postgame-section hidden">
+        <div class="dex-section-head">
+          <div>
+            <p class="eyebrow">NATIONAL DEX • PÓS-GAME</p>
+            <h3 id="nationalPostgameTitle">Pokémon liberados na National Dex</h3>
+            <p id="nationalPostgameNote" class="muted"></p>
+          </div>
+          <span id="nationalPostgameCount" class="dex-section-count"></span>
+        </div>
+        <div id="nationalPostgameGrid" class="pokemon-grid"></div>
+      </section>
       <div id="loading" class="loading">Carregando Pokédex…</div>
     </section>
   </main>
