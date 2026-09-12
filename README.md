@@ -139,3 +139,7 @@ Importante: essa grade é de **Pokémon que aparecem/encontram-se no jogo**. Pok
 
 ## V7.7 — Remoção da National Dex / pós-game
 A seção extra de **National Dex / pós-game** foi removida e as fichas deixaram de exibir marcadores de National Dex. A navegação dos jogos voltou ao padrão normal da Dex regional. As melhorias de **evolução** e **exclusivos por versão** continuam ativas.
+
+
+## V7.8 — manter a tela após F5
+A última área aberta agora é salva em `localStorage`. Ao atualizar a página, o app retorna para **Dashboard**, **National Dex**, **Pokémon HOME** ou para o **mesmo jogo** que estava aberto, em vez de sempre voltar ao início. Ao zerar o save completo, essa posição também é limpa.

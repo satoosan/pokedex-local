@@ -40,7 +40,17 @@ const games=[
 ];
 
 let allPokemon=[], currentList=[], state=loadState();
-let route={type:'dashboard',gen:null,game:null};
+const LAST_ROUTE_KEY='my-pokedex-last-route-v1';
+function loadLastRoute(){
+  try{
+    const r=JSON.parse(localStorage.getItem(LAST_ROUTE_KEY)||'null');
+    if(!r||!['dashboard','national','home','game'].includes(r.type))return {type:'dashboard',gen:null,game:null};
+    if(r.type==='game'&&!games.some(g=>g.id===r.game))return {type:'dashboard',gen:null,game:null};
+    return r;
+  }catch{return {type:'dashboard',gen:null,game:null}}
+}
+function saveLastRoute(r){try{localStorage.setItem(LAST_ROUTE_KEY,JSON.stringify(r))}catch{}}
+let route=loadLastRoute();
 let homeSelection=new Set();
 let statusFilter='all', search='', viewMode='cards';
 const gameDexCache={};
@@ -77,7 +87,8 @@ async function boot(){
     if(!cached)sessionStorage.setItem('pokedex-species',JSON.stringify(data));
     allPokemon=data.results.map(x=>({id:idFromUrl(x.url),name:x.name,url:x.url})).filter(x=>x.id>0).sort((a,b)=>a.id-b.id);
     migrateCatchSources();
-    buildGenerationNav(); renderDashboard();
+    buildGenerationNav();
+    await navigate(route);
     preloadGameDexes().then(()=>{if(route.type==='dashboard')renderDashboard()}).catch(console.warn);
   }catch(e){document.getElementById('loading').textContent='Não consegui acessar a PokéAPI. Confira a internet e recarregue.';console.error(e)}
 }
@@ -110,7 +121,7 @@ function buildGenerationNav(){
 }
 
 async function navigate(next){
-  if(route?.type==='home'&&next.type!=='home')homeSelection.clear();route=next; search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':'Peguei';
+  if(route?.type==='home'&&next.type!=='home')homeSelection.clear();route=next;saveLastRoute(route); search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':'Peguei';
   document.getElementById('dashboardView').classList.toggle('active-view',next.type==='dashboard');
   document.getElementById('dexView').classList.toggle('active-view',next.type!=='dashboard');
   document.querySelectorAll('.main-nav .nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===next.type));
@@ -558,6 +569,7 @@ function resetFullSave(){
   const second=confirm('Última confirmação: deseja realmente apagar todo o progresso?\n\nDica: exporte um backup antes se quiser guardar uma cópia.');
   if(!second)return;
   localStorage.removeItem(STORAGE);
+  localStorage.removeItem(LAST_ROUTE_KEY);
   state={pokemon:{},forms:{},games:{},celebratedGames:{},timeline:[]};
   route={type:'dashboard',gen:null,game:null};
   search='';statusFilter='all';
