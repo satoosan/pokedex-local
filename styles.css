@@ -106,28 +106,8 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 
 .version-exclusive{display:inline-flex;max-width:92%;margin:5px auto 0;padding:4px 7px;border-radius:999px;border:1px solid rgba(255,184,76,.35);background:rgba(255,184,76,.09);color:#f4bd61;font-size:8px;font-weight:900;text-align:center}
 
-/* V7.4 — evolução + National Dex / pós-game */
+/* V7.4 — evolução */
 .evo-head{margin-bottom:12px}.evo-list{display:grid;gap:10px}.evo-step{padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
 .evo-species{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}.evo-species span{color:var(--muted)}
 .evo-method{margin-top:8px;padding:9px 10px;border-radius:10px;background:rgba(100,168,255,.08);font-size:11px;line-height:1.45}
 .evo-empty{text-align:center;padding:24px}
-.national-dex-banner{width:100%;display:flex;gap:10px;align-items:flex-start;margin-top:9px;padding:10px 12px;border:1px solid rgba(89,190,255,.28);border-radius:12px;background:rgba(89,190,255,.07)}
-.national-dex-banner>span{font-size:18px}.national-dex-banner strong{display:block;font-size:10px}.national-dex-banner small{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
-.natdex-inline{display:block;margin-top:4px;color:var(--muted);font-size:8px;font-style:normal;line-height:1.35;max-width:520px}
-
-/* V7.5 — National Dex / Pós-game abaixo da Regional */
-.dex-section{margin-top:0}
-.dex-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:18px 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
-.dex-section-head h3{margin:2px 0 0;font-size:15px}
-.dex-section-head .muted{margin:5px 0 0;font-size:10px;line-height:1.45;max-width:760px}
-.dex-section-count{flex:0 0 auto;padding:6px 9px;border-radius:999px;border:1px solid var(--line);font-size:9px;font-weight:900;color:var(--muted)}
-.national-postgame-section{margin-top:22px;padding-top:6px;border-top:1px dashed var(--line)}
-.national-postgame-section .dex-section-head{border-color:rgba(89,190,255,.28);background:rgba(89,190,255,.06)}
-#regionalDexHeading{margin-top:0}
-@media(max-width:700px){.dex-section-head{flex-direction:column}.dex-section-count{align-self:flex-start}}
-
-/* V7.6 — pós-National filtrado por encontro nativo */
-.national-loading{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-height:140px;padding:20px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}
-.national-loading strong{font-size:11px;color:var(--text)}.national-loading small{font-size:9px}
-.spinner{width:22px;height:22px;border:3px solid var(--line);border-top-color:currentColor;border-radius:50%;animation:natspin .8s linear infinite}
-@keyframes natspin{to{transform:rotate(360deg)}}

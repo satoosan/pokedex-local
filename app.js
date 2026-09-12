@@ -13,8 +13,6 @@ const gens=[
 ];
 
 const VERSION_EXCLUSIVES={"red-green-blue":{"Red":[23,24,43,44,45,56,57,58,59,123,125],"Blue":[27,28,37,38,52,53,69,70,71,126,127]},"gold-silver":{"Gold":[56,57,58,59,167,168,207,216,217,226],"Silver":[37,38,52,53,165,166,225,227]},"ruby-sapphire":{"Ruby":[273,274,275,303,335,338,383],"Sapphire":[270,271,272,302,336,337,382]},"firered-leafgreen":{"FireRed":[23,24,43,44,45,54,55,58,59,123,125],"LeafGreen":[27,28,37,38,69,70,71,79,80,126,127]},"diamond-pearl":{"Diamond":[86,87,123,198,246,247,248,261,262,304,305,306,352,408,409,434,435,483],"Pearl":[79,80,127,200,228,229,234,371,372,373,410,411,431,432,484]},"heartgold-soulsilver":{"HeartGold":[56,57,58,59,167,168,207,231,232,302,343,344,380],"SoulSilver":[37,38,52,53,165,166,225,226,303,316,317,382]},"black-white":{"Black":[13,14,15,198,228,229,285,286,311,430,546,547,559,560,574,575,576,629,630,641,643],"White":[10,11,12,46,47,200,261,262,312,429,548,549,577,578,579,627,628,642,644]},"x-y":{"X":[120,121,127,228,229,261,262,304,305,306,345,346,347,348,539,684,685,692,693,716],"Y":[90,91,214,246,247,248,309,310,509,510,538,682,683,690,691,717]},"omega-ruby-alpha-sapphire":{"Omega Ruby":[273,274,275,303,335,338,383,539,566,567,692,693],"Alpha Sapphire":[270,271,272,302,336,337,382,538,564,565,690,691]},"sun-moon":{"Sun":[37,38,408,409,546,547,627,628,766,776,791,794,795,798],"Moon":[27,28,410,411,548,549,629,630,765,780,792,793,796,797]},"ultra-sun-ultra-moon":{"Ultra Sun":[37,38,408,409,546,547,627,628,766,776,791,794,795,798,806],"Ultra Moon":[27,28,410,411,548,549,629,630,765,780,792,793,796,797,805]},"sword-shield":{"Sword":[273,274,275,303,338,539,559,560,574,575,576,627,628,633,634,635,684,685,766,776,782,783,784,865,874,888],"Shield":[270,271,272,302,337,538,577,578,579,629,630,704,705,706,765,780,875,876,889]},"brilliant-diamond-shining-pearl":{"Brilliant Diamond":[10,11,12,23,24,58,59,86,87,123,198,207,246,247,248,261,262,273,274,275,303,335,338,352,408,409,434,435,483],"Shining Pearl":[13,14,15,27,28,37,38,79,80,127,200,216,217,228,229,234,270,271,272,302,336,337,410,411,431,432,484]},"scarlet-violet":{"Scarlet":[246,247,248,425,426,434,435,633,634,635,765,874,936,984,985,986,987,988,989,1005,1007],"Violet":[200,316,317,371,372,373,692,693,766,875,877,937,990,991,992,993,994,995,1006,1008]}};
-const GAME_ENCOUNTER_VERSIONS={"red-green-blue":["red","blue"],"yellow":["yellow"],"gold-silver":["gold","silver"],"crystal":["crystal"],"ruby-sapphire":["ruby","sapphire"],"emerald":["emerald"],"firered-leafgreen":["firered","leafgreen"],"diamond-pearl":["diamond","pearl"],"platinum":["platinum"],"heartgold-soulsilver":["heartgold","soulsilver"],"black-white":["black","white"],"black2-white2":["black-2","white-2"],"x-y":["x","y"],"omega-ruby-alpha-sapphire":["omega-ruby","alpha-sapphire"],"sun-moon":["sun","moon"],"ultra-sun-ultra-moon":["ultra-sun","ultra-moon"],"lets-go":["lets-go-pikachu","lets-go-eevee"],"sword-shield":["sword","shield"],"brilliant-diamond-shining-pearl":["brilliant-diamond","shining-pearl"],"scarlet-violet":["scarlet","violet"]};
-const NATIONAL_DEX_INFO={"ruby-sapphire":{"label":"National Dex por conexão/troca","unlock":"É habilitada após troca com FireRed, LeafGreen ou Emerald.","postgame":false},"emerald":{"label":"National Dex no pós-game","unlock":"Professor Birch libera após você se tornar Campeão.","postgame":true},"firered-leafgreen":{"label":"National Dex no pós-game","unlock":"Professor Oak libera após entrar no Hall da Fama e registrar 60 espécies capturadas.","postgame":true},"diamond-pearl":{"label":"National Dex no pós-game","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan.","postgame":true},"platinum":{"label":"National Dex no pós-game","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan.","postgame":true},"heartgold-soulsilver":{"label":"National Dex no pós-game","unlock":"Professor Oak libera após você se tornar Campeão.","postgame":true},"black-white":{"label":"National Dex após a história","unlock":"Cedric Juniper libera após derrotar Ghetsis e continuar o jogo.","postgame":true},"black2-white2":{"label":"National Dex no pós-game","unlock":"Cedric Juniper libera após entrar no Hall da Fama e continuar o jogo.","postgame":true},"x-y":{"label":"National Dex no pós-game","unlock":"Após entrar no Hall da Fama, Dexio libera o modo National em Lumiose Station.","postgame":true},"omega-ruby-alpha-sapphire":{"label":"National Dex após Groudon/Kyogre","unlock":"Após derrotar ou capturar Groudon/Kyogre, fale com Professor Birch em Littleroot. Isso acontece antes do Hall da Fama.","postgame":false},"brilliant-diamond-shining-pearl":{"label":"National Dex após completar a Sinnoh Dex vista","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan para liberar a National Dex.","postgame":true}};
 const games=[
   {id:'red-green-blue',name:'Red / Green / Blue',short:'R/G/B',gen:1,dex:['kanto'],fallback:[1,151]},
   {id:'yellow',name:'Yellow',short:'Yellow',gen:1,dex:['kanto'],fallback:[1,151]},
@@ -118,7 +116,7 @@ async function navigate(next){
   document.querySelectorAll('.main-nav .nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===next.type));
   document.querySelectorAll('.game-nav,.gen-nav-head').forEach(b=>b.classList.remove('active'));
   updateBulkCatchButton();updateHomeSelectionBar();
-  if(next.type==='dashboard'){document.getElementById('regionalDexHeading')?.classList.add('hidden');document.getElementById('nationalPostgameSection')?.classList.add('hidden');setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
+  if(next.type==='dashboard'){setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
   if(next.type==='national'){setHeading('NATIONAL DEX','National Dex','Todos os Pokémon em uma única lista.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='home'){setHeading('POKÉMON HOME','Coleção no HOME','Marque exatamente quais Pokémon você já enviou ao Pokémon HOME.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='generation'){route={type:'dashboard',gen:null,game:null};setHeading('PROGRESSO GERAL','Dashboard','');document.getElementById('dashboardView').classList.add('active-view');document.getElementById('dexView').classList.remove('active-view');renderDashboard();return}
@@ -137,7 +135,7 @@ function renderContext(){
   const el=document.getElementById('contextSwitcher');
   if(route.type==='game'){
     const g=gens.find(x=>x.id===route.gen); const list=games.filter(x=>x.gen===route.gen);
-    const activeGame=games.find(x=>x.id===route.game);el.innerHTML=`<span class="context-label">${g.name} • ${g.region}</span>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}${activeGame?nationalDexBanner(activeGame):''}`;
+    el.innerHTML=`<span class="context-label">${g.name} • ${g.region}</span>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}`;
     el.querySelectorAll('[data-context-game]').forEach(b=>b.onclick=()=>navigate({type:'game',gen:g.id,game:b.dataset.contextGame}));
   }else el.innerHTML='';
 }
@@ -173,16 +171,7 @@ function exclusiveInfo(gameId,id){const g=VERSION_EXCLUSIVES[gameId];if(!g)retur
 function exclusiveBadge(gameId,id){const x=exclusiveInfo(gameId,id);return x?`<span class="version-exclusive">🔒 Exclusivo de ${x.version}</span>`:''}
 
 
-const NATIONAL_NATIVE_CACHE_KEY='my-pokedex-national-native-v1';
-let nationalNativeCache=(()=>{try{return JSON.parse(localStorage.getItem(NATIONAL_NATIVE_CACHE_KEY)||'{}')}catch{return {}}})();
-let nationalRenderToken=0;
-function saveNationalNativeCache(){localStorage.setItem(NATIONAL_NATIVE_CACHE_KEY,JSON.stringify(nationalNativeCache))}
-function nationalDexCandidates(game){
-  if(!NATIONAL_DEX_INFO[game.id])return [];
-  const regionalIds=new Set((gameDexCache[game.id]||currentList||[]).map(p=>Number(p.id)));
-  const cap=(gens.find(g=>g.id===game.gen)?.range?.[1]||0);
-  return allPokemon.filter(p=>p.id<=cap&&!regionalIds.has(Number(p.id)));
-}
+
 function filterPokemonList(list){
   return list.filter(p=>{
     const s=pstate(p.id);
@@ -205,66 +194,6 @@ function bindPokemonGrid(grid){
     card.querySelector('[data-share-pokemon]')?.addEventListener('click',e=>{e.stopPropagation();sharePokemon(id)});
   });
 }
-async function hasNativeEncounter(game,id){
-  const versions=GAME_ENCOUNTER_VERSIONS[game.id]||[];
-  if(!versions.length)return false;
-  nationalNativeCache[game.id] ||= {};
-  if(Object.prototype.hasOwnProperty.call(nationalNativeCache[game.id],id))return !!nationalNativeCache[game.id][id];
-  try{
-    const data=await fetch(`${API}/pokemon/${id}/encounters`).then(r=>r.ok?r.json():[]);
-    const found=(data||[]).some(area=>(area.version_details||[]).some(v=>versions.includes(v.version?.name)));
-    nationalNativeCache[game.id][id]=found?1:0;
-    return found;
-  }catch{return false}
-}
-async function mapWithConcurrency(items,limit,fn,onProgress){
-  const out=[];let next=0,done=0;
-  async function worker(){
-    while(next<items.length){
-      const i=next++,item=items[i];
-      if(await fn(item))out.push(item);
-      done++;onProgress?.(done,items.length,out.length);
-    }
-  }
-  await Promise.all(Array.from({length:Math.min(limit,items.length||1)},worker));
-  return out;
-}
-async function renderNationalPostgame(){
-  const token=++nationalRenderToken;
-  const section=document.getElementById('nationalPostgameSection');
-  const regionalHead=document.getElementById('regionalDexHeading');
-  if(!section)return;
-  const isGame=route.type==='game';
-  regionalHead?.classList.toggle('hidden',!isGame);
-  if(!isGame){section.classList.add('hidden');return}
-  const game=games.find(g=>g.id===route.game);
-  const info=NATIONAL_DEX_INFO[game?.id];
-  const versions=GAME_ENCOUNTER_VERSIONS[game?.id]||[];
-  if(!game||!info||!versions.length){section.classList.add('hidden');return}
-  section.classList.remove('hidden');
-
-  const candidates=nationalDexCandidates(game);
-  const grid=document.getElementById('nationalPostgameGrid');
-  const note=document.getElementById('nationalPostgameNote');
-  const count=document.getElementById('nationalPostgameCount');
-  document.getElementById('nationalPostgameTitle').textContent='Pokémon que aparecem após a National Dex';
-  note.textContent=`${info.unlock} Filtrando somente espécies com encontros nativos registrados em ${game.name}; não inclui Pokémon obtidos apenas por troca, presente, evento ou transferência.`;
-  count.textContent='verificando…';
-  grid.innerHTML='<div class="national-loading"><span class="spinner"></span><strong>Conferindo encontros do jogo…</strong><small id="nationalLoadProgress">0 / '+candidates.length+'</small></div>';
-
-  const native=await mapWithConcurrency(candidates,10,p=>hasNativeEncounter(game,p.id),(done,total,found)=>{
-    if(token!==nationalRenderToken)return;
-    const el=document.getElementById('nationalLoadProgress');if(el)el.textContent=`${done} / ${total} • ${found} encontrados`;
-  });
-  if(token!==nationalRenderToken||route.type!=='game'||route.game!==game.id)return;
-  saveNationalNativeCache();
-
-  const list=filterPokemonList(native.sort((a,b)=>a.id-b.id));
-  count.textContent=`${list.length} / ${native.length}`;
-  grid.classList.toggle('box-mode',viewMode==='boxes');
-  grid.innerHTML=list.map(p=>cardHTML({...p,regionalNo:null})).join('')||'<div class="empty-state">Nenhum Pokémon pós-National encontrado com esses filtros.</div>';
-  bindPokemonGrid(grid);
-}
 
 function filteredBase(){return filterPokemonList(currentList)}
 function renderGrid(){
@@ -272,7 +201,6 @@ function renderGrid(){
   grid.classList.toggle('box-mode',viewMode==='boxes');
   grid.innerHTML=list.map(cardHTML).join('')||'<div class="empty-state">Nenhum Pokémon encontrado com esses filtros.</div>';
   bindPokemonGrid(grid);
-  renderNationalPostgame();
   updateSummary();
   updateBulkCatchButton();
 }
@@ -533,19 +461,6 @@ function renderEvolutionTab(ctx){
   if(!related.length)return `<div class="evo-empty"><div class="obtain-icon">🧬</div><h3>Sem evolução direta</h3><p>${capitalize(ctx.p.name)} não possui uma evolução anterior/próxima catalogada nesta cadeia, ou é uma forma especial.</p></div>`;
   return `<div class="evo-head"><p class="eyebrow">EVOLUÇÃO</p><h3>Como ${capitalize(ctx.p.name)} evolui</h3><p class="muted">Mostra nível, troca, item, pedra e condições especiais conforme a cadeia da PokéAPI.</p></div><div class="evo-list">${related.map(e=>`<div class="evo-step"><div class="evo-species"><strong>${capitalize(e.from)}</strong><span>→</span><strong>${capitalize(e.to)}</strong></div>${e.methods.map(m=>`<div class="evo-method">🧬 ${m}</div>`).join('')}</div>`).join('')}</div>`;
 }
-function nationalDexStatus(game,id){
-  const info=NATIONAL_DEX_INFO[game.id];
-  if(!info)return null;
-  const regional=(gameDexCache[game.id]||[]).some(p=>Number(p.id)===Number(id));
-  if(regional)return {kind:'regional',label:'Dex regional',info};
-  if(genFor(id).id<=game.gen)return {kind:'national',label:info.label,info};
-  return null;
-}
-function nationalDexBanner(game){
-  const n=NATIONAL_DEX_INFO[game.id];
-  if(!n)return '';
-  return `<div class="national-dex-banner"><span>🌐</span><div><strong>${n.label}</strong><small>${n.unlock}</small></div></div>`;
-}
 
 async function openPokemon(id){
   const dlg=document.getElementById('pokemonDialog'),content=document.getElementById('dialogContent'),p=allPokemon.find(x=>x.id===id),s=pstate(id);content.innerHTML='<p class="muted">Carregando detalhes…</p>';dlg.showModal();
@@ -579,8 +494,8 @@ function renderPokemonTab(ctx,tab){
   if(tab==='home')panel.innerHTML=`<div class="detail-card"><div><p class="eyebrow">POKÉMON HOME</p><h3>Já foi enviado ao HOME?</h3><p class="muted">Controle sua coleção central separadamente.</p></div><button class="mega-check ${s.home?'checked':''}" id="toggleHome">${s.home?'✓ Está no HOME':'○ Ainda não enviei'}</button></div>`;
   if(tab==='forms')panel.innerHTML=`<div><p class="muted">Marque cada forma ou variação que você já possui.</p><div class="form-list">${forms.length?forms.map(f=>{const key=f.name,img=f.sprites?.other?.home?.front_default||f.sprites?.front_default||IMG(id);return `<label class="form-item ${state.forms[key]?'checked':''}"><input class="formCheck" data-form="${key}" type="checkbox" ${state.forms[key]?'checked':''}><img src="${img}" alt=""><span><strong>${capitalize(f.name)}</strong><small>${state.forms[key]?'✓ Obtida':'Faltando'}</small></span></label>`}).join(''):'<div class="empty-state">Nenhuma forma extra encontrada para este Pokémon.</div>'}</div></div>`;
   if(tab==='games'){
-    const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id || (NATIONAL_DEX_INFO[g.id]&&genFor(id).id<=g.gen));
-    panel.innerHTML=`<div><p class="muted">Marque em quais jogos você já obteve este Pokémon. A marcação é independente por jogo.</p><div class="game-status-list">${relevant.map(g=>{const gs=gameState(g.id,id),ex=exclusiveInfo(g.id,id);const nd=nationalDexStatus(g,id);return `<button class="game-status ${gs.caught?'checked':''}" data-game-toggle="${g.id}"><span><strong>${g.name}</strong><small>Gen ${roman(g.gen)}${ex?` • 🔒 Exclusivo de ${ex.version}`:''}${nd?.kind==='national'?` • 🌐 ${nd.label}`:nd?.kind==='regional'?' • Dex regional':''}</small>${nd?.kind==='national'?`<em class="natdex-inline">${nd.info.unlock}</em>`:''}</span><b>${gs.caught?'✓ Peguei':'○ Falta'}</b></button>`}).join('')}</div></div>`;
+    const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id);
+    panel.innerHTML=`<div><p class="muted">Marque em quais jogos você já obteve este Pokémon. A marcação é independente por jogo.</p><div class="game-status-list">${relevant.map(g=>{const gs=gameState(g.id,id),ex=exclusiveInfo(g.id,id);return `<button class="game-status ${gs.caught?'checked':''}" data-game-toggle="${g.id}"><span><strong>${g.name}</strong><small>Gen ${roman(g.gen)}${ex?` • 🔒 Exclusivo de ${ex.version}`:''}</small></span><b>${gs.caught?'✓ Peguei':'○ Falta'}</b></button>`}).join('')}</div></div>`;
   }
   document.getElementById('toggleLiving')?.addEventListener('click',()=>{toggleManualCatch(id);persist();renderPokemonTab(ctx,'living');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});

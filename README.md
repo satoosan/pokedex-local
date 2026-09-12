@@ -135,3 +135,7 @@ A seção **National Dex • Pós-game** deixou de listar simplesmente todos os 
 Exemplo: em **Omega Ruby / Alpha Sapphire**, a seção pós-National mostra apenas Pokémon com encontros registrados em `omega-ruby` ou `alpha-sapphire`, em vez de exibir toda a National Dex da Geração VI. O resultado é salvo em cache local depois da primeira verificação.
 
 Importante: essa grade é de **Pokémon que aparecem/encontram-se no jogo**. Pokémon obtidos exclusivamente por troca, presente, evento, evolução sem encontro próprio ou transferência não entram automaticamente nessa grade.
+
+
+## V7.7 — Remoção da National Dex / pós-game
+A seção extra de **National Dex / pós-game** foi removida e as fichas deixaram de exibir marcadores de National Dex. A navegação dos jogos voltou ao padrão normal da Dex regional. As melhorias de **evolução** e **exclusivos por versão** continuam ativas.
