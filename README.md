@@ -115,3 +115,9 @@ Na tela **Pokémon HOME**, cada card agora possui um checkbox no canto superior.
 
 ## V7.3 — Version Exclusives
 Jogos pareados agora mostram badges `🔒 Exclusivo de [versão]`, filtro **Exclusivos**, e a informação também aparece na ficha em Jogos / Regional. A classificação é por obtenção nativa, sem contar HOME/transferência.
+
+
+## V7.4 — Evolução e National Dex / pós-game
+A ficha de cada Pokémon ganhou a aba **🧬 Evolução**, mostrando métodos como nível, troca, troca segurando item, pedra/item evolutivo, amizade, horário, golpe conhecido, local e outras condições especiais fornecidas pela PokéAPI.
+
+Jogos que possuem **National Dex** agora exibem um aviso com a condição de desbloqueio. Na aba **Jogos / Regional**, Pokémon fora da dex regional podem aparecer identificados como **🌐 National Dex / pós-game** quando aplicável. Essa indicação significa classificação/acesso pela Pokédex Nacional, não garantia de captura selvagem nativa.

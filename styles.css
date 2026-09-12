@@ -105,3 +105,12 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 }
 
 .version-exclusive{display:inline-flex;max-width:92%;margin:5px auto 0;padding:4px 7px;border-radius:999px;border:1px solid rgba(255,184,76,.35);background:rgba(255,184,76,.09);color:#f4bd61;font-size:8px;font-weight:900;text-align:center}
+
+/* V7.4 — evolução + National Dex / pós-game */
+.evo-head{margin-bottom:12px}.evo-list{display:grid;gap:10px}.evo-step{padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+.evo-species{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}.evo-species span{color:var(--muted)}
+.evo-method{margin-top:8px;padding:9px 10px;border-radius:10px;background:rgba(100,168,255,.08);font-size:11px;line-height:1.45}
+.evo-empty{text-align:center;padding:24px}
+.national-dex-banner{width:100%;display:flex;gap:10px;align-items:flex-start;margin-top:9px;padding:10px 12px;border:1px solid rgba(89,190,255,.28);border-radius:12px;background:rgba(89,190,255,.07)}
+.national-dex-banner>span{font-size:18px}.national-dex-banner strong{display:block;font-size:10px}.national-dex-banner small{display:block;margin-top:3px;color:var(--muted);font-size:9px;line-height:1.4}
+.natdex-inline{display:block;margin-top:4px;color:var(--muted);font-size:8px;font-style:normal;line-height:1.35;max-width:520px}

@@ -13,6 +13,7 @@ const gens=[
 ];
 
 const VERSION_EXCLUSIVES={"red-green-blue":{"Red":[23,24,43,44,45,56,57,58,59,123,125],"Blue":[27,28,37,38,52,53,69,70,71,126,127]},"gold-silver":{"Gold":[56,57,58,59,167,168,207,216,217,226],"Silver":[37,38,52,53,165,166,225,227]},"ruby-sapphire":{"Ruby":[273,274,275,303,335,338,383],"Sapphire":[270,271,272,302,336,337,382]},"firered-leafgreen":{"FireRed":[23,24,43,44,45,54,55,58,59,123,125],"LeafGreen":[27,28,37,38,69,70,71,79,80,126,127]},"diamond-pearl":{"Diamond":[86,87,123,198,246,247,248,261,262,304,305,306,352,408,409,434,435,483],"Pearl":[79,80,127,200,228,229,234,371,372,373,410,411,431,432,484]},"heartgold-soulsilver":{"HeartGold":[56,57,58,59,167,168,207,231,232,302,343,344,380],"SoulSilver":[37,38,52,53,165,166,225,226,303,316,317,382]},"black-white":{"Black":[13,14,15,198,228,229,285,286,311,430,546,547,559,560,574,575,576,629,630,641,643],"White":[10,11,12,46,47,200,261,262,312,429,548,549,577,578,579,627,628,642,644]},"x-y":{"X":[120,121,127,228,229,261,262,304,305,306,345,346,347,348,539,684,685,692,693,716],"Y":[90,91,214,246,247,248,309,310,509,510,538,682,683,690,691,717]},"omega-ruby-alpha-sapphire":{"Omega Ruby":[273,274,275,303,335,338,383,539,566,567,692,693],"Alpha Sapphire":[270,271,272,302,336,337,382,538,564,565,690,691]},"sun-moon":{"Sun":[37,38,408,409,546,547,627,628,766,776,791,794,795,798],"Moon":[27,28,410,411,548,549,629,630,765,780,792,793,796,797]},"ultra-sun-ultra-moon":{"Ultra Sun":[37,38,408,409,546,547,627,628,766,776,791,794,795,798,806],"Ultra Moon":[27,28,410,411,548,549,629,630,765,780,792,793,796,797,805]},"sword-shield":{"Sword":[273,274,275,303,338,539,559,560,574,575,576,627,628,633,634,635,684,685,766,776,782,783,784,865,874,888],"Shield":[270,271,272,302,337,538,577,578,579,629,630,704,705,706,765,780,875,876,889]},"brilliant-diamond-shining-pearl":{"Brilliant Diamond":[10,11,12,23,24,58,59,86,87,123,198,207,246,247,248,261,262,273,274,275,303,335,338,352,408,409,434,435,483],"Shining Pearl":[13,14,15,27,28,37,38,79,80,127,200,216,217,228,229,234,270,271,272,302,336,337,410,411,431,432,484]},"scarlet-violet":{"Scarlet":[246,247,248,425,426,434,435,633,634,635,765,874,936,984,985,986,987,988,989,1005,1007],"Violet":[200,316,317,371,372,373,692,693,766,875,877,937,990,991,992,993,994,995,1006,1008]}};
+const NATIONAL_DEX_INFO={"ruby-sapphire":{"label":"National Dex por conexão/troca","unlock":"É habilitada após troca com FireRed, LeafGreen ou Emerald.","postgame":false},"emerald":{"label":"National Dex no pós-game","unlock":"Professor Birch libera após você se tornar Campeão.","postgame":true},"firered-leafgreen":{"label":"National Dex no pós-game","unlock":"Professor Oak libera após entrar no Hall da Fama e registrar 60 espécies capturadas.","postgame":true},"diamond-pearl":{"label":"National Dex no pós-game","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan.","postgame":true},"platinum":{"label":"National Dex no pós-game","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan.","postgame":true},"heartgold-soulsilver":{"label":"National Dex no pós-game","unlock":"Professor Oak libera após você se tornar Campeão.","postgame":true},"black-white":{"label":"National Dex após a história","unlock":"Cedric Juniper libera após derrotar Ghetsis e continuar o jogo.","postgame":true},"black2-white2":{"label":"National Dex no pós-game","unlock":"Cedric Juniper libera após entrar no Hall da Fama e continuar o jogo.","postgame":true},"x-y":{"label":"National Dex no pós-game","unlock":"Após entrar no Hall da Fama, Dexio libera o modo National em Lumiose Station.","postgame":true},"omega-ruby-alpha-sapphire":{"label":"National Dex após Groudon/Kyogre","unlock":"Após derrotar ou capturar Groudon/Kyogre, fale com Professor Birch em Littleroot. Isso acontece antes do Hall da Fama.","postgame":false},"brilliant-diamond-shining-pearl":{"label":"National Dex após completar a Sinnoh Dex vista","unlock":"Após ver todos os Pokémon da Sinnoh Dex, fale com Professor Rowan para liberar a National Dex.","postgame":true}};
 const games=[
   {id:'red-green-blue',name:'Red / Green / Blue',short:'R/G/B',gen:1,dex:['kanto'],fallback:[1,151]},
   {id:'yellow',name:'Yellow',short:'Yellow',gen:1,dex:['kanto'],fallback:[1,151]},
@@ -135,7 +136,7 @@ function renderContext(){
   const el=document.getElementById('contextSwitcher');
   if(route.type==='game'){
     const g=gens.find(x=>x.id===route.gen); const list=games.filter(x=>x.gen===route.gen);
-    el.innerHTML=`<span class="context-label">${g.name} • ${g.region}</span>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}`;
+    const activeGame=games.find(x=>x.id===route.game);el.innerHTML=`<span class="context-label">${g.name} • ${g.region}</span>${list.map(x=>`<button class="context-chip ${route.game===x.id?'active':''}" data-context-game="${x.id}">${x.short}</button>`).join('')}${activeGame?nationalDexBanner(activeGame):''}`;
     el.querySelectorAll('[data-context-game]').forEach(b=>b.onclick=()=>navigate({type:'game',gen:g.id,game:b.dataset.contextGame}));
   }else el.innerHTML='';
 }
@@ -385,13 +386,90 @@ function renderTimeline(){
 }
 
 
+
+const EVO_ITEM_LABELS={
+'fire-stone':'Pedra de Fogo','water-stone':'Pedra da Água','thunder-stone':'Pedra do Trovão',
+'leaf-stone':'Pedra da Folha','moon-stone':'Pedra da Lua','sun-stone':'Pedra do Sol',
+'shiny-stone':'Pedra Brilhante','dusk-stone':'Pedra do Anoitecer','dawn-stone':'Pedra do Amanhecer',
+'ice-stone':'Pedra de Gelo','kings-rock':"King's Rock",'metal-coat':'Metal Coat','dragon-scale':'Dragon Scale',
+'up-grade':'Up-Grade','dubious-disc':'Dubious Disc','protector':'Protector','electirizer':'Electirizer',
+'magmarizer':'Magmarizer','reaper-cloth':'Reaper Cloth','razor-claw':'Razor Claw','razor-fang':'Razor Fang',
+'prism-scale':'Prism Scale','sachet':'Sachet','whipped-dream':'Whipped Dream','oval-stone':'Oval Stone',
+'linking-cord':'Linking Cord','sweet-apple':'Sweet Apple','tart-apple':'Tart Apple',
+'cracked-pot':'Cracked Pot','chipped-pot':'Chipped Pot'
+};
+function evoItem(v){return EVO_ITEM_LABELS[v]||prettySlug(v||'item')}
+function evoMethod(detail={}){
+  const t=detail.trigger?.name||'';
+  const parts=[];
+  let main='';
+  if(t==='trade') main=detail.held_item?`Troca segurando ${evoItem(detail.held_item.name)}`:'Troca';
+  else if(t==='use-item') main=`Usar ${evoItem(detail.item?.name)}`;
+  else if(t==='level-up') main=detail.min_level!=null?`Subir para o nível ${detail.min_level}`:'Subir de nível';
+  else if(t==='shed') main='Ao evoluir Nincada com espaço na equipe e Poké Ball';
+  else if(t==='spin') main='Girar o personagem após cumprir a condição';
+  else if(t==='three-critical-hits') main='Conseguir 3 golpes críticos em uma batalha';
+  else if(t==='take-damage') main='Receber dano e cumprir a condição especial';
+  else main=prettySlug(t||'condição especial');
+
+  if(detail.held_item && t!=='trade')parts.push(`segurando ${evoItem(detail.held_item.name)}`);
+  if(detail.min_happiness!=null)parts.push(`amizade ≥ ${detail.min_happiness}`);
+  if(detail.min_affection!=null)parts.push(`afeição ≥ ${detail.min_affection}`);
+  if(detail.min_beauty!=null)parts.push(`beleza ≥ ${detail.min_beauty}`);
+  if(detail.time_of_day)parts.push(detail.time_of_day==='day'?'durante o dia':detail.time_of_day==='night'?'durante a noite':prettySlug(detail.time_of_day));
+  if(detail.known_move?.name)parts.push(`conhecendo ${prettySlug(detail.known_move.name)}`);
+  if(detail.known_move_type?.name)parts.push(`conhecendo golpe do tipo ${capitalize(detail.known_move_type.name)}`);
+  if(detail.location?.name)parts.push(`em ${locationLabel(detail.location.name)}`);
+  if(detail.needs_overworld_rain)parts.push('com chuva no mundo');
+  if(detail.turn_upside_down)parts.push('com o console de cabeça para baixo');
+  if(detail.gender===1)parts.push('fêmea');
+  if(detail.gender===2)parts.push('macho');
+  if(detail.relative_physical_stats===1)parts.push('Ataque > Defesa');
+  if(detail.relative_physical_stats===0)parts.push('Ataque = Defesa');
+  if(detail.relative_physical_stats===-1)parts.push('Ataque < Defesa');
+  if(detail.party_species?.name)parts.push(`com ${capitalize(detail.party_species.name)} na equipe`);
+  if(detail.party_type?.name)parts.push(`com Pokémon do tipo ${capitalize(detail.party_type.name)} na equipe`);
+  if(detail.trade_species?.name)parts.push(`trocado por ${capitalize(detail.trade_species.name)}`);
+  return main+(parts.length?` • ${parts.join(' • ')}`:'');
+}
+function evolutionEdgesFromChain(chain){
+  const edges=[];
+  const walk=node=>{
+    for(const child of node?.evolves_to||[]){
+      const details=(child.evolution_details||[]);
+      edges.push({from:node.species?.name,to:child.species?.name,methods:details.length?details.map(evoMethod):['Condição especial']});
+      walk(child);
+    }
+  };
+  walk(chain?.chain);return edges;
+}
+function renderEvolutionTab(ctx){
+  const edges=ctx.evolutionEdges||[];
+  const related=edges.filter(e=>e.from===ctx.p.name||e.to===ctx.p.name);
+  if(!related.length)return `<div class="evo-empty"><div class="obtain-icon">🧬</div><h3>Sem evolução direta</h3><p>${capitalize(ctx.p.name)} não possui uma evolução anterior/próxima catalogada nesta cadeia, ou é uma forma especial.</p></div>`;
+  return `<div class="evo-head"><p class="eyebrow">EVOLUÇÃO</p><h3>Como ${capitalize(ctx.p.name)} evolui</h3><p class="muted">Mostra nível, troca, item, pedra e condições especiais conforme a cadeia da PokéAPI.</p></div><div class="evo-list">${related.map(e=>`<div class="evo-step"><div class="evo-species"><strong>${capitalize(e.from)}</strong><span>→</span><strong>${capitalize(e.to)}</strong></div>${e.methods.map(m=>`<div class="evo-method">🧬 ${m}</div>`).join('')}</div>`).join('')}</div>`;
+}
+function nationalDexStatus(game,id){
+  const info=NATIONAL_DEX_INFO[game.id];
+  if(!info)return null;
+  const regional=(gameDexCache[game.id]||[]).some(p=>Number(p.id)===Number(id));
+  if(regional)return {kind:'regional',label:'Dex regional',info};
+  if(genFor(id).id<=game.gen)return {kind:'national',label:info.label,info};
+  return null;
+}
+function nationalDexBanner(game){
+  const n=NATIONAL_DEX_INFO[game.id];
+  if(!n)return '';
+  return `<div class="national-dex-banner"><span>🌐</span><div><strong>${n.label}</strong><small>${n.unlock}</small></div></div>`;
+}
+
 async function openPokemon(id){
   const dlg=document.getElementById('pokemonDialog'),content=document.getElementById('dialogContent'),p=allPokemon.find(x=>x.id===id),s=pstate(id);content.innerHTML='<p class="muted">Carregando detalhes…</p>';dlg.showModal();
-  let species=null,forms=[],pokemonData=null,evolution=[],encounters=[];try{species=await fetch(`${API}/pokemon-species/${id}`).then(r=>r.json());pokemonData=await fetch(`${API}/pokemon/${id}`).then(r=>r.json());forms=await Promise.all((species.varieties||[]).slice(0,30).map(async v=>{try{return await fetch(v.pokemon.url).then(r=>r.json())}catch{return null}}));if(species?.evolution_chain?.url){const chain=await fetch(species.evolution_chain.url).then(r=>r.json());const walk=n=>{if(!n)return;evolution.push(n.species?.name);(n.evolves_to||[]).forEach(walk)};walk(chain.chain)}try{encounters=await fetch(`${API}/pokemon/${id}/encounters`).then(r=>r.ok?r.json():[])}catch{encounters=[]}}catch{}
+  let species=null,forms=[],pokemonData=null,evolution=[],evolutionEdges=[],encounters=[];try{species=await fetch(`${API}/pokemon-species/${id}`).then(r=>r.json());pokemonData=await fetch(`${API}/pokemon/${id}`).then(r=>r.json());forms=await Promise.all((species.varieties||[]).slice(0,30).map(async v=>{try{return await fetch(v.pokemon.url).then(r=>r.json())}catch{return null}}));if(species?.evolution_chain?.url){const chain=await fetch(species.evolution_chain.url).then(r=>r.json());const walk=n=>{if(!n)return;evolution.push(n.species?.name);(n.evolves_to||[]).forEach(walk)};walk(chain.chain);evolutionEdges=evolutionEdgesFromChain(chain)}try{encounters=await fetch(`${API}/pokemon/${id}/encounters`).then(r=>r.ok?r.json():[])}catch{encounters=[]}}catch{}
   const g=genFor(id);
   const types=(pokemonData?.types||[]).map(t=>capitalize(t.type.name));const meta=[types.join(' / '),pokemonData?`${(pokemonData.height/10).toFixed(1)} m`:null,pokemonData?`${(pokemonData.weight/10).toFixed(1)} kg`:null].filter(Boolean);
-  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><div class="poke-meta">${meta.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${evolution.length>1?`Linha evolutiva: ${evolution.map(capitalize).join(' → ')}`:'Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.'}</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="obtain">📍 Onde obter</button><button data-tab="home">⌂ HOME</button></div><div id="tabPanel"></div>`;
-  const ctx={id,p,s,species,forms:forms.filter(Boolean),pokemonData,evolution,encounters};const show=tab=>{content.querySelectorAll('.detail-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderPokemonTab(ctx,tab)};content.querySelectorAll('.detail-tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));show('living');
+  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><div class="poke-meta">${meta.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${evolution.length>1?`Linha evolutiva: ${evolution.map(capitalize).join(' → ')}`:'Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.'}</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="evolution">🧬 Evolução</button><button data-tab="obtain">📍 Onde obter</button><button data-tab="home">⌂ HOME</button></div><div id="tabPanel"></div>`;
+  const ctx={id,p,s,species,forms:forms.filter(Boolean),pokemonData,evolution,evolutionEdges,encounters};const show=tab=>{content.querySelectorAll('.detail-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderPokemonTab(ctx,tab)};content.querySelectorAll('.detail-tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));show('living');
 }
 
 const VERSION_LABELS={red:'Red',blue:'Blue',yellow:'Yellow',gold:'Gold',silver:'Silver',crystal:'Crystal',ruby:'Ruby',sapphire:'Sapphire',emerald:'Emerald',firered:'FireRed',leafgreen:'LeafGreen',diamond:'Diamond',pearl:'Pearl',platinum:'Platinum',heartgold:'HeartGold',soulsilver:'SoulSilver',black:'Black',white:'White','black-2':'Black 2','white-2':'White 2',x:'X',y:'Y','omega-ruby':'Omega Ruby','alpha-sapphire':'Alpha Sapphire',sun:'Sun',moon:'Moon','ultra-sun':'Ultra Sun','ultra-moon':'Ultra Moon','lets-go-pikachu':"Let's Go Pikachu",'lets-go-eevee':"Let's Go Eevee",sword:'Sword',shield:'Shield','brilliant-diamond':'Brilliant Diamond','shining-pearl':'Shining Pearl','legends-arceus':'Legends: Arceus',scarlet:'Scarlet',violet:'Violet'};
@@ -412,12 +490,13 @@ function renderPokemonTab(ctx,tab){
   const panel=document.getElementById('tabPanel'),{id,p,s,forms}=ctx;
   if(tab==='living')panel.innerHTML=`<div class="detail-card"><div><p class="eyebrow">LIVING DEX</p><h3>Tenho ${capitalize(p.name)} na coleção?</h3><p class="muted">Use isso para sua Living Dex global.</p></div><button class="mega-check ${s.caught?'checked':''}" id="toggleLiving">${s.caught?'✓ Sim, já tenho':'○ Ainda falta'}</button></div>`;
   if(tab==='shiny')panel.innerHTML=`<div class="detail-card shiny-card"><img class="detail-sprite" src="${SHINY_IMG(id)}" alt="Shiny ${p.name}"><div><p class="eyebrow">SHINY DEX</p><h3>Shiny ${capitalize(p.name)}</h3><p class="muted">Marque separado da Living Dex normal.</p></div><button class="mega-check ${s.shiny?'checked':''}" id="toggleShiny">${s.shiny?'✦ Shiny obtido!':'○ Ainda falta o shiny'}</button></div>`;
+  if(tab==='evolution')panel.innerHTML=renderEvolutionTab(ctx);
   if(tab==='obtain')panel.innerHTML=renderObtainTab(ctx);
   if(tab==='home')panel.innerHTML=`<div class="detail-card"><div><p class="eyebrow">POKÉMON HOME</p><h3>Já foi enviado ao HOME?</h3><p class="muted">Controle sua coleção central separadamente.</p></div><button class="mega-check ${s.home?'checked':''}" id="toggleHome">${s.home?'✓ Está no HOME':'○ Ainda não enviei'}</button></div>`;
   if(tab==='forms')panel.innerHTML=`<div><p class="muted">Marque cada forma ou variação que você já possui.</p><div class="form-list">${forms.length?forms.map(f=>{const key=f.name,img=f.sprites?.other?.home?.front_default||f.sprites?.front_default||IMG(id);return `<label class="form-item ${state.forms[key]?'checked':''}"><input class="formCheck" data-form="${key}" type="checkbox" ${state.forms[key]?'checked':''}><img src="${img}" alt=""><span><strong>${capitalize(f.name)}</strong><small>${state.forms[key]?'✓ Obtida':'Faltando'}</small></span></label>`}).join(''):'<div class="empty-state">Nenhuma forma extra encontrada para este Pokémon.</div>'}</div></div>`;
   if(tab==='games'){
-    const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id);
-    panel.innerHTML=`<div><p class="muted">Marque em quais jogos você já obteve este Pokémon. A marcação é independente por jogo.</p><div class="game-status-list">${relevant.map(g=>{const gs=gameState(g.id,id),ex=exclusiveInfo(g.id,id);return `<button class="game-status ${gs.caught?'checked':''}" data-game-toggle="${g.id}"><span><strong>${g.name}</strong><small>Gen ${roman(g.gen)}${ex?` • 🔒 Exclusivo de ${ex.version}`:''}</small></span><b>${gs.caught?'✓ Peguei':'○ Falta'}</b></button>`}).join('')}</div></div>`;
+    const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id || (NATIONAL_DEX_INFO[g.id]&&genFor(id).id<=g.gen));
+    panel.innerHTML=`<div><p class="muted">Marque em quais jogos você já obteve este Pokémon. A marcação é independente por jogo.</p><div class="game-status-list">${relevant.map(g=>{const gs=gameState(g.id,id),ex=exclusiveInfo(g.id,id);const nd=nationalDexStatus(g,id);return `<button class="game-status ${gs.caught?'checked':''}" data-game-toggle="${g.id}"><span><strong>${g.name}</strong><small>Gen ${roman(g.gen)}${ex?` • 🔒 Exclusivo de ${ex.version}`:''}${nd?.kind==='national'?` • 🌐 ${nd.label}`:nd?.kind==='regional'?' • Dex regional':''}</small>${nd?.kind==='national'?`<em class="natdex-inline">${nd.info.unlock}</em>`:''}</span><b>${gs.caught?'✓ Peguei':'○ Falta'}</b></button>`}).join('')}</div></div>`;
   }
   document.getElementById('toggleLiving')?.addEventListener('click',()=>{toggleManualCatch(id);persist();renderPokemonTab(ctx,'living');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});
