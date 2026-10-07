@@ -143,3 +143,9 @@ A seção extra de **National Dex / pós-game** foi removida e as fichas deixara
 
 ## V7.8 — manter a tela após F5
 A última área aberta agora é salva em `localStorage`. Ao atualizar a página, o app retorna para **Dashboard**, **National Dex**, **Pokémon HOME** ou para o **mesmo jogo** que estava aberto, em vez de sempre voltar ao início. Ao zerar o save completo, essa posição também é limpa.
+
+
+## V8.0 — Pokémon GO separado
+Foi adicionada uma área própria de **Pokémon GO**, logo abaixo de Pokémon HOME na navegação. O GO usa um status independente (`state.pokemon[id].go`): marcar um Pokémon em qualquer jogo principal, na National Dex ou no HOME não marca o mesmo Pokémon no GO.
+
+A tela do GO usa a National Dex como lista-base, mas é uma coleção separada. Cada Pokémon também ganhou uma aba **● GO** na ficha para marcar individualmente. O status GO é preservado em exportações/importações do backup.

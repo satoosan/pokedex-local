@@ -111,3 +111,7 @@ body.dark{--bg:#10131b;--panel:#181d29;--panel2:#202635;--text:#f4f7ff;--muted:#
 .evo-species{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}.evo-species span{color:var(--muted)}
 .evo-method{margin-top:8px;padding:9px 10px;border-radius:10px;background:rgba(100,168,255,.08);font-size:11px;line-height:1.45}
 .evo-empty{text-align:center;padding:24px}
+
+/* V8.0 — Pokémon GO separado */
+.go-card{border-color:rgba(74,143,255,.45)}
+.mini-status span.go{font-size:8px;font-weight:900;letter-spacing:-.2px}.mini-status span.go.on{color:var(--accent,#4a8fff)}

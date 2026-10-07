@@ -44,7 +44,7 @@ const LAST_ROUTE_KEY='my-pokedex-last-route-v1';
 function loadLastRoute(){
   try{
     const r=JSON.parse(localStorage.getItem(LAST_ROUTE_KEY)||'null');
-    if(!r||!['dashboard','national','home','game'].includes(r.type))return {type:'dashboard',gen:null,game:null};
+    if(!r||!['dashboard','national','home','go','game'].includes(r.type))return {type:'dashboard',gen:null,game:null};
     if(r.type==='game'&&!games.some(g=>g.id===r.game))return {type:'dashboard',gen:null,game:null};
     return r;
   }catch{return {type:'dashboard',gen:null,game:null}}
@@ -61,7 +61,7 @@ function loadState(){
   catch{return {pokemon:{},forms:{},games:{},celebratedGames:{},timeline:[]}}
 }
 function persist(){localStorage.setItem(STORAGE,JSON.stringify(state));renderStats()}
-function pstate(id){const s=state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false,manualCaught:false});if(s.manualCaught===undefined)s.manualCaught=false;return s}
+function pstate(id){const s=state.pokemon[id]||(state.pokemon[id]={seen:false,caught:false,shiny:false,home:false,manualCaught:false});if(s.manualCaught===undefined)s.manualCaught=false;if(s.go===undefined)s.go=false;return s}
 function gameState(gameId,id){state.games[gameId]||={};return state.games[gameId][id]||(state.games[gameId][id]={caught:false})}
 function anyGameCaught(id){return Object.values(state.games||{}).some(game=>!!game?.[id]?.caught)}
 function recomputeNationalCaught(id){const s=pstate(id);s.caught=!!s.manualCaught||anyGameCaught(id);s.seen=s.caught;return s.caught}
@@ -121,7 +121,7 @@ function buildGenerationNav(){
 }
 
 async function navigate(next){
-  if(route?.type==='home'&&next.type!=='home')homeSelection.clear();route=next;saveLastRoute(route); search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':'Peguei';
+  if(route?.type==='home'&&next.type!=='home')homeSelection.clear();route=next;saveLastRoute(route); search='';document.getElementById('searchInput').value='';statusFilter='all';document.querySelectorAll('#statusFilter button').forEach(x=>x.classList.toggle('active',x.dataset.status==='all'));const caughtFilter=document.querySelector('#statusFilter [data-status="caught"]');if(caughtFilter)caughtFilter.textContent=next.type==='home'?'No HOME':next.type==='go'?'Tenho no GO':'Peguei';
   document.getElementById('dashboardView').classList.toggle('active-view',next.type==='dashboard');
   document.getElementById('dexView').classList.toggle('active-view',next.type!=='dashboard');
   document.querySelectorAll('.main-nav .nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.route===next.type));
@@ -130,6 +130,7 @@ async function navigate(next){
   if(next.type==='dashboard'){setHeading('PROGRESSO GERAL','Dashboard','');renderDashboard();return}
   if(next.type==='national'){setHeading('NATIONAL DEX','National Dex','Todos os Pokémon em uma única lista.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='home'){setHeading('POKÉMON HOME','Coleção no HOME','Marque exatamente quais Pokémon você já enviou ao Pokémon HOME.');currentList=allPokemon;renderContext();renderGrid();return}
+  if(next.type==='go'){setHeading('POKÉMON GO','Coleção no Pokémon GO','Controle do Pokémon GO separado dos jogos principais e do Pokémon HOME.');currentList=allPokemon;renderContext();renderGrid();return}
   if(next.type==='generation'){route={type:'dashboard',gen:null,game:null};setHeading('PROGRESSO GERAL','Dashboard','');document.getElementById('dashboardView').classList.add('active-view');document.getElementById('dexView').classList.remove('active-view');renderDashboard();return}
   if(next.type==='game'){
     const game=games.find(x=>x.id===next.game);setHeading(`GEN ${roman(game.gen)} • JOGO`,game.name,'Marque os Pokémon obtidos especificamente neste jogo.');markNavActive();renderContext();await loadGame(game);renderGrid();
@@ -186,7 +187,7 @@ function exclusiveBadge(gameId,id){const x=exclusiveInfo(gameId,id);return x?`<s
 function filterPokemonList(list){
   return list.filter(p=>{
     const s=pstate(p.id);
-    const caught=route.type==='game'?gameState(route.game,p.id).caught:route.type==='home'?s.home:s.caught;
+    const caught=route.type==='game'?gameState(route.game,p.id).caught:route.type==='home'?s.home:route.type==='go'?s.go:s.caught;
     if(search && !p.name.includes(search) && !String(p.id).includes(search))return false;
     if(statusFilter==='missing'&&caught)return false;
     if(statusFilter==='caught'&&!caught)return false;
@@ -216,12 +217,12 @@ function renderGrid(){
   updateBulkCatchButton();
 }
 function cardHTML(p){
-  const s=pstate(p.id), gameCaught=route.type==='game'?gameState(route.game,p.id).caught:null, caught=route.type==='game'?gameCaught:route.type==='home'?s.home:s.caught;
+  const s=pstate(p.id), gameCaught=route.type==='game'?gameState(route.game,p.id).caught:null, caught=route.type==='game'?gameCaught:route.type==='home'?s.home:route.type==='go'?s.go:s.caught;
   const no=p.regionalNo?String(p.regionalNo).padStart(3,'0'):String(p.id).padStart(4,'0');
-  const sourceNote=route.type!=='game'&&caught&&!s.manualCaught&&anyGameCaught(p.id)?'Via jogo':'';
-  const actionLabel=route.type==='home'?(s.home?'✓ Está no HOME':'○ Mandar para o HOME'):(caught?'✓ Peguei!':'○ Marcar como pego');
+  const sourceNote=route.type!=='game'&&route.type!=='go'&&caught&&!s.manualCaught&&anyGameCaught(p.id)?'Via jogo':'';
+  const actionLabel=route.type==='home'?(s.home?'✓ Está no HOME':'○ Mandar para o HOME'):route.type==='go'?(s.go?'✓ Está no GO':'○ Marcar no GO'):(caught?'✓ Peguei!':'○ Marcar como pego');
   const shareButton=route.type!=='home'&&caught?'<button class="share-mini" data-share-pokemon title="Compartilhar no X">↗ X</button>':'';
-  return `<article class="pokemon-card ${caught?'caught':''} ${route.type==='home'&&s.home?'home-card':''} ${route.type==='home'&&homeSelection.has(p.id)?'selected-for-home':''}" data-id="${p.id}">${route.type==='home'?`<label class="home-select-box" title="Selecionar para ação em lote"><input type="checkbox" data-home-select ${homeSelection.has(p.id)?'checked':''}><span></span></label>`:''}<button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4>${sourceNote?`<small class="source-note">${sourceNote}</small>`:''}${route.type==='game'?exclusiveBadge(route.game,p.id):''}<div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''} ${route.type==='home'?'home-check':''}" data-quick-catch>${actionLabel}</button>${shareButton}</div></article>`;
+  return `<article class="pokemon-card ${caught?'caught':''} ${route.type==='home'&&s.home?'home-card':''} ${route.type==='go'&&s.go?'go-card':''} ${route.type==='home'&&homeSelection.has(p.id)?'selected-for-home':''}" data-id="${p.id}">${route.type==='home'?`<label class="home-select-box" title="Selecionar para ação em lote"><input type="checkbox" data-home-select ${homeSelection.has(p.id)?'checked':''}><span></span></label>`:''}<button class="pokemon-main" aria-label="Abrir ${capitalize(p.name)}"><span class="num">#${no}</span>${caught?'<span class="caught-stamp">✓</span>':''}<img loading="lazy" src="${IMG(p.id)}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${p.id}.png'" alt="${p.name}"><h4>${capitalize(p.name)}</h4>${sourceNote?`<small class="source-note">${sourceNote}</small>`:''}${route.type==='game'?exclusiveBadge(route.game,p.id):''}<div class="mini-status"><span class="${s.caught?'on':''}" title="Living Dex">●</span><span class="${s.shiny?'on shiny':''}" title="Shiny">✦</span><span class="${s.home?'on home':''}" title="HOME">⌂</span><span class="${s.go?'on go':''}" title="Pokémon GO">GO</span></div></button><div class="card-actions"><button class="catch-check ${caught?'is-checked':''} ${route.type==='home'?'home-check':''}" data-quick-catch>${actionLabel}</button>${shareButton}</div></article>`;
 }
 
 function updateBulkCatchButton(){
@@ -367,16 +368,18 @@ function toggleQuickCatch(id){
     const gs=gameState(route.game,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:route.game});else if(!gameProgress(route.game).complete)state.celebratedGames[route.game]=false;persist();renderGrid();if(gs.caught)checkGameCompletion(route.game)
   }else if(route.type==='home'){
     const s=pstate(id);s.home=!s.home;persist();renderGrid();
+  }else if(route.type==='go'){
+    const s=pstate(id);s.go=!s.go;persist();renderGrid();
   }else{toggleManualCatch(id);persist();renderGrid()}
 }
 function updateSummary(){
   const base=currentList;
-  const done=route.type==='game'?base.filter(p=>gameState(route.game,p.id).caught).length:route.type==='home'?base.filter(p=>pstate(p.id).home).length:base.filter(p=>pstate(p.id).caught).length;
+  const done=route.type==='game'?base.filter(p=>gameState(route.game,p.id).caught).length:route.type==='home'?base.filter(p=>pstate(p.id).home).length:route.type==='go'?base.filter(p=>pstate(p.id).go).length:base.filter(p=>pstate(p.id).caught).length;
   const total=base.length,pct=total?done/total*100:0;
-  const label=route.type==='national'?'National Dex':route.type==='home'?'Pokémon HOME':games.find(g=>g.id===route.game)?.name||'Dex';
+  const label=route.type==='national'?'National Dex':route.type==='home'?'Pokémon HOME':route.type==='go'?'Pokémon GO':games.find(g=>g.id===route.game)?.name||'Dex';
   document.getElementById('dexLabel').textContent=label;
   document.getElementById('dexSummary').textContent=`${done} / ${total}`;
-  document.getElementById('dexRemaining').textContent=route.type==='home'?(done===total&&total?'Tudo no HOME! ⌂':`${Math.max(0,total-done)} fora do HOME`):(done===total&&total?'Completa! 🏆':`${Math.max(0,total-done)} faltando`);
+  document.getElementById('dexRemaining').textContent=route.type==='home'?(done===total&&total?'Tudo no HOME! ⌂':`${Math.max(0,total-done)} fora do HOME`):route.type==='go'?(done===total&&total?'Tudo no GO! • GO':`${Math.max(0,total-done)} fora do GO`):(done===total&&total?'Completa! 🏆':`${Math.max(0,total-done)} faltando`);
   document.getElementById('dexBar').style.width=`${pct}%`;
 }
 
@@ -478,7 +481,7 @@ async function openPokemon(id){
   let species=null,forms=[],pokemonData=null,evolution=[],evolutionEdges=[],encounters=[];try{species=await fetch(`${API}/pokemon-species/${id}`).then(r=>r.json());pokemonData=await fetch(`${API}/pokemon/${id}`).then(r=>r.json());forms=await Promise.all((species.varieties||[]).slice(0,30).map(async v=>{try{return await fetch(v.pokemon.url).then(r=>r.json())}catch{return null}}));if(species?.evolution_chain?.url){const chain=await fetch(species.evolution_chain.url).then(r=>r.json());const walk=n=>{if(!n)return;evolution.push(n.species?.name);(n.evolves_to||[]).forEach(walk)};walk(chain.chain);evolutionEdges=evolutionEdgesFromChain(chain)}try{encounters=await fetch(`${API}/pokemon/${id}/encounters`).then(r=>r.ok?r.json():[])}catch{encounters=[]}}catch{}
   const g=genFor(id);
   const types=(pokemonData?.types||[]).map(t=>capitalize(t.type.name));const meta=[types.join(' / '),pokemonData?`${(pokemonData.height/10).toFixed(1)} m`:null,pokemonData?`${(pokemonData.weight/10).toFixed(1)} kg`:null].filter(Boolean);
-  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><div class="poke-meta">${meta.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${evolution.length>1?`Linha evolutiva: ${evolution.map(capitalize).join(' → ')}`:'Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.'}</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="evolution">🧬 Evolução</button><button data-tab="obtain">📍 Onde obter</button><button data-tab="home">⌂ HOME</button></div><div id="tabPanel"></div>`;
+  content.innerHTML=`<div class="poke-profile"><img src="${IMG(id)}" alt="${p.name}"><div><p class="eyebrow">#${String(id).padStart(4,'0')} • ${g.name} • ${g.region}</p><h2>${capitalize(p.name)}</h2><div class="poke-meta">${meta.map(x=>`<span>${x}</span>`).join('')}</div><p class="muted">${evolution.length>1?`Linha evolutiva: ${evolution.map(capitalize).join(' → ')}`:'Tudo desse Pokémon fica aqui: coleção, formas, shiny, jogos e HOME.'}</p></div></div><div class="detail-tabs"><button class="active" data-tab="living">● Living Dex</button><button data-tab="forms">◇ Form Dex</button><button data-tab="shiny">✦ Shiny Dex</button><button data-tab="games">⌖ Jogos / Regional</button><button data-tab="evolution">🧬 Evolução</button><button data-tab="obtain">📍 Onde obter</button><button data-tab="home">⌂ HOME</button><button data-tab="go">● GO</button></div><div id="tabPanel"></div>`;
   const ctx={id,p,s,species,forms:forms.filter(Boolean),pokemonData,evolution,evolutionEdges,encounters};const show=tab=>{content.querySelectorAll('.detail-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));renderPokemonTab(ctx,tab)};content.querySelectorAll('.detail-tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));show('living');
 }
 
@@ -503,6 +506,7 @@ function renderPokemonTab(ctx,tab){
   if(tab==='evolution')panel.innerHTML=renderEvolutionTab(ctx);
   if(tab==='obtain')panel.innerHTML=renderObtainTab(ctx);
   if(tab==='home')panel.innerHTML=`<div class="detail-card"><div><p class="eyebrow">POKÉMON HOME</p><h3>Já foi enviado ao HOME?</h3><p class="muted">Controle sua coleção central separadamente.</p></div><button class="mega-check ${s.home?'checked':''}" id="toggleHome">${s.home?'✓ Está no HOME':'○ Ainda não enviei'}</button></div>`;
+  if(tab==='go')panel.innerHTML=`<div class="detail-card"><div><p class="eyebrow">POKÉMON GO</p><h3>Já tenho este Pokémon no GO?</h3><p class="muted">O progresso do GO é totalmente separado dos jogos principais e do Pokémon HOME.</p></div><button class="mega-check ${s.go?'checked':''}" id="toggleGo">${s.go?'✓ Tenho no GO':'○ Ainda não tenho no GO'}</button></div>`;
   if(tab==='forms')panel.innerHTML=`<div><p class="muted">Marque cada forma ou variação que você já possui.</p><div class="form-list">${forms.length?forms.map(f=>{const key=f.name,img=f.sprites?.other?.home?.front_default||f.sprites?.front_default||IMG(id);return `<label class="form-item ${state.forms[key]?'checked':''}"><input class="formCheck" data-form="${key}" type="checkbox" ${state.forms[key]?'checked':''}><img src="${img}" alt=""><span><strong>${capitalize(f.name)}</strong><small>${state.forms[key]?'✓ Obtida':'Faltando'}</small></span></label>`}).join(''):'<div class="empty-state">Nenhuma forma extra encontrada para este Pokémon.</div>'}</div></div>`;
   if(tab==='games'){
     const relevant=games.filter(g=>id>=g.fallback[0]&&id<=g.fallback[1] || g.gen===genFor(id).id);
@@ -511,6 +515,7 @@ function renderPokemonTab(ctx,tab){
   document.getElementById('toggleLiving')?.addEventListener('click',()=>{toggleManualCatch(id);persist();renderPokemonTab(ctx,'living');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleShiny')?.addEventListener('click',()=>{s.shiny=!s.shiny;persist();renderPokemonTab(ctx,'shiny');if(route.type!=='dashboard')renderGrid()});
   document.getElementById('toggleHome')?.addEventListener('click',()=>{s.home=!s.home;persist();renderPokemonTab(ctx,'home')});
+  document.getElementById('toggleGo')?.addEventListener('click',()=>{s.go=!s.go;persist();renderPokemonTab(ctx,'go')});
   panel.querySelectorAll?.('.formCheck').forEach(i=>i.addEventListener('change',e=>{state.forms[i.dataset.form]=e.target.checked;persist();renderPokemonTab(ctx,'forms')}));
   panel.querySelectorAll?.('[data-game-toggle]').forEach(b=>b.onclick=()=>{const gs=gameState(b.dataset.gameToggle,id);gs.caught=!gs.caught;recomputeNationalCaught(id);if(gs.caught)recordEvent('pokemon',{id,game:b.dataset.gameToggle});else if(!gameProgress(b.dataset.gameToggle).complete)state.celebratedGames[b.dataset.gameToggle]=false;persist();renderPokemonTab(ctx,'games');if(route.type!=='dashboard')renderGrid();if(gs.caught)checkGameCompletion(b.dataset.gameToggle)});
 }
